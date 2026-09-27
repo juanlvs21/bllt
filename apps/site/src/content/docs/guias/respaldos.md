@@ -10,7 +10,7 @@ Bllt respalda solo, sin que hagas nada:
 - Una copia **diaria** si queda abierta.
 - Se guardan los **últimos 30 días**.
 
-Van a `Documentos\Bllt\Respaldos` con nombres como `bllt-2026-09-27_183000.db`. Si tu carpeta Documentos está sincronizada con OneDrive, además quedan en la nube de Microsoft.
+Van a `Documentos\Bllt\Backups` con nombres como `bllt-2026-09-27_183000.db`. Si tu carpeta Documentos está sincronizada con OneDrive, además quedan en la nube de Microsoft.
 
 **Recomendación:** una vez por semana copia esa carpeta a un pendrive.
 

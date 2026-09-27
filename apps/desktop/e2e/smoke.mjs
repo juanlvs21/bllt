@@ -15,7 +15,8 @@ const data = mkdtempSync(join(tmpdir(), 'bllt-e2e-'))
 mkdirSync(shots, { recursive: true })
 
 const app = await electron.launch({
-  args: [join(root, 'out/main/index.js')],
+  // Launch the folder, not out/main/index.js: Electron only reads productName ("Bllt") from package.json then.
+  args: [root],
   cwd: root,
   env: { ...process.env, BLLT_USER_DATA_DIR: join(data, 'userData'), BLLT_DOCUMENTS_DIR: data }
 })

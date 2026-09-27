@@ -16,10 +16,10 @@ export const paths = {
     return join(documents(), 'Bllt')
   },
   get defaultBackups() {
-    return join(documents(), 'Bllt', 'Respaldos')
+    return join(documents(), 'Bllt', 'Backups')
   },
   get exports() {
-    return join(documents(), 'Bllt', 'Exportaciones')
+    return join(documents(), 'Bllt', 'Exports')
   },
   get migrations() {
     return app.isPackaged

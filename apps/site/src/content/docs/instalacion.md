@@ -31,6 +31,6 @@ Bllt revisa GitHub al abrir y cada 6 horas. Si hay versión nueva, la baja en se
 ## ¿Dónde quedan mis datos?
 
 - La base de datos vive en `%APPDATA%\Bllt\bllt.db`.
-- Los respaldos van a `Documentos\Bllt\Respaldos` y las exportaciones a `Documentos\Bllt\Exportaciones`.
+- Los respaldos van a `Documentos\Bllt\Backups` y las exportaciones a `Documentos\Bllt\Exports`.
 
 Sigue con el [primer arranque](/docs/guias/primer-arranque).

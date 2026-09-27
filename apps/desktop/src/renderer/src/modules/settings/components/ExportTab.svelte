@@ -31,7 +31,7 @@
     <Card.Title>Exportar ventas</Card.Title>
     <Card.Description>
       Incluye cada línea de venta con cliente, usuario, tasa, montos en USD y Bs y ganancia. Se
-      guarda en Documentos/Bllt/Exportaciones. Puedes seguir vendiendo mientras se genera.
+      guarda en Documentos/Bllt/Exports. Puedes seguir vendiendo mientras se genera.
     </Card.Description>
   </Card.Header>
   <Card.Content class="space-y-5">
