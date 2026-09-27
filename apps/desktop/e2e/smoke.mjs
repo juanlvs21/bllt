@@ -108,6 +108,16 @@ try {
   if (!profit.includes('$2,00')) throw new Error(`Ganancia inesperada: ${profit}`)
   step('dashboard con ganancia $2,00')
 
+  await page.getByRole('button', { name: 'Ventas', exact: true }).click()
+  await page.getByLabel('Período').click()
+  await shot('08-sales-period')
+  // Today to today: the first click starts the range, the second closes it.
+  const today = page.locator('[data-bits-day][data-today]:not([data-outside-month])')
+  await today.click()
+  await today.click()
+  await page.getByRole('cell', { name: '#1', exact: true }).waitFor()
+  step('ventas filtradas por período')
+
   await page.getByRole('button', { name: 'Productos' }).click()
   await page
     .getByRole('row', { name: /Harina PAN/ })

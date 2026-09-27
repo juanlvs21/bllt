@@ -1,6 +1,6 @@
 <script lang="ts">
   import { businessDate, ExportFormat } from '@bllt/shared'
-  import { Button, Card, Input, Label, Progress, Tabs } from '@bllt/ui'
+  import { Button, Card, DateRangePicker, Label, Progress, Tabs } from '@bllt/ui'
   import { onMount } from 'svelte'
   import type { ExportProgress } from '../../../../../types/api'
   import { attempt } from '../../../lib/api'
@@ -37,12 +37,8 @@
   <Card.Content class="space-y-5">
     <div class="flex flex-wrap gap-4">
       <div class="space-y-1.5">
-        <Label for="e-from">Desde</Label>
-        <Input id="e-from" type="date" class="w-44" bind:value={from} max={to} />
-      </div>
-      <div class="space-y-1.5">
-        <Label for="e-to">Hasta</Label>
-        <Input id="e-to" type="date" class="w-44" bind:value={to} min={from} />
+        <Label for="e-period">Período</Label>
+        <DateRangePicker id="e-period" class="w-64" bind:from bind:to max={today} />
       </div>
       <div class="space-y-1.5">
         <Label>Formato</Label>

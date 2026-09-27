@@ -1,6 +1,6 @@
 <script lang="ts">
   import { businessDate, DEFAULT_PER_PAGE, type PerPage } from '@bllt/shared'
-  import { Badge, Button, Card, Input, Label, Pagination, Table } from '@bllt/ui'
+  import { Badge, Button, Card, DateRangePicker, Label, Pagination, Table } from '@bllt/ui'
   import XIcon from '@lucide/svelte/icons/x'
   import type { SaleDto } from '../../../../../types/api'
   import PageHeader from '../../../layout/PageHeader.svelte'
@@ -67,12 +67,8 @@
 <Card.Root>
   <Card.Header class="flex flex-wrap items-end gap-4">
     <div class="space-y-1.5">
-      <Label for="from">Desde</Label>
-      <Input id="from" type="date" class="w-40" bind:value={from} max={to || undefined} />
-    </div>
-    <div class="space-y-1.5">
-      <Label for="to">Hasta</Label>
-      <Input id="to" type="date" class="w-40" bind:value={to} min={from || undefined} />
+      <Label for="period">Período</Label>
+      <DateRangePicker id="period" class="w-64" bind:from bind:to max={today} />
     </div>
     <Button
       variant="ghost"
