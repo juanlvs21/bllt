@@ -1,0 +1,6 @@
+pnpm-lock.yaml
+LICENSE
+**/dist
+**/out
+**/.svelte-kit
+apps/worker/migrations

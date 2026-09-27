@@ -1,0 +1,32 @@
+name: Release desktop
+
+# Builds the Windows NSIS installer and publishes it to GitHub Releases.
+# electron-updater reads those releases (with blockmaps for differential downloads).
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Sync version with tag
+        shell: bash
+        run: |
+          cd apps/desktop
+          npm pkg set version="${GITHUB_REF_NAME#v}"
+      - name: Build and publish
+        working-directory: apps/desktop
+        run: pnpm build && pnpm exec electron-builder --win --publish always
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

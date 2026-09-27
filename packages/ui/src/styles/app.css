@@ -1,0 +1,162 @@
+/*
+ * Bllt base styles: shadcn-svelte variables mapped to the brand palette
+ * (verde billete, tinta, oro moneda) with light and dark variants.
+ * Apps import this file and Tailwind scans packages/ui through @source.
+ */
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import '@fontsource-variable/montserrat';
+
+@source '..';
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --radius: 0.75rem;
+
+  --background: #eeeaea;
+  --foreground: #27302f;
+  --card: #ffffff;
+  --card-foreground: #27302f;
+  --popover: #ffffff;
+  --popover-foreground: #27302f;
+  --primary: #1bae8f;
+  --primary-foreground: #ffffff;
+  --secondary: #e3f5f0;
+  --secondary-foreground: #117a63;
+  --muted: #f4f1f1;
+  --muted-foreground: #6c7573;
+  --accent: #e3f5f0;
+  --accent-foreground: #117a63;
+  --destructive: #dc5454;
+  --border: #e3dede;
+  --input: #d8d2d2;
+  --ring: #1bae8f;
+
+  --gold: #e7a93b;
+  --gold-foreground: #3b2a05;
+  --gold-soft: #fbf0db;
+  --success: #1bae8f;
+  --warning: #e7a93b;
+
+  --chart-1: #1bae8f;
+  --chart-2: #e7a93b;
+  --chart-3: #3f7cac;
+  --chart-4: #8a6fb8;
+  --chart-5: #dc5454;
+
+  --sidebar: #f7f5f5;
+  --sidebar-foreground: #4a5351;
+  --sidebar-primary: #1bae8f;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e8e4e4;
+  --sidebar-accent-foreground: #1bae8f;
+  --sidebar-border: #e3dede;
+  --sidebar-ring: #1bae8f;
+}
+
+.dark {
+  --background: #121817;
+  --foreground: #e8eceb;
+  --card: #1a2221;
+  --card-foreground: #e8eceb;
+  --popover: #1a2221;
+  --popover-foreground: #e8eceb;
+  --primary: #2cc7a5;
+  --primary-foreground: #05201a;
+  --secondary: #1d3430;
+  --secondary-foreground: #86e6cf;
+  --muted: #1f2827;
+  --muted-foreground: #95a29f;
+  --accent: #1d3430;
+  --accent-foreground: #86e6cf;
+  --destructive: #f07171;
+  --border: #2a3533;
+  --input: #34413f;
+  --ring: #2cc7a5;
+
+  --gold: #f0bc5e;
+  --gold-foreground: #2d2005;
+  --gold-soft: #3a2f18;
+  --success: #2cc7a5;
+  --warning: #f0bc5e;
+
+  --chart-1: #2cc7a5;
+  --chart-2: #f0bc5e;
+  --chart-3: #6fa8d6;
+  --chart-4: #b39ddb;
+  --chart-5: #f07171;
+
+  --sidebar: #161d1c;
+  --sidebar-foreground: #c4cdcb;
+  --sidebar-primary: #2cc7a5;
+  --sidebar-primary-foreground: #05201a;
+  --sidebar-accent: #1f2927;
+  --sidebar-accent-foreground: #2cc7a5;
+  --sidebar-border: #2a3533;
+  --sidebar-ring: #2cc7a5;
+}
+
+@theme inline {
+  --font-sans: 'Montserrat Variable', ui-sans-serif, system-ui, sans-serif;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-gold: var(--gold);
+  --color-gold-foreground: var(--gold-foreground);
+  --color-gold-soft: var(--gold-soft);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    color-scheme: light;
+  }
+  html.dark {
+    color-scheme: dark;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}

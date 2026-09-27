@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["svelte", "vite/client", "vite-plugin-pwa/svelte"],
+    "noEmit": true,
+    "allowJs": true,
+    "checkJs": true,
+    "noUncheckedIndexedAccess": false,
+    "paths": { "@bllt/ui/*": ["../../packages/ui/src/*"] }
+  },
+  "include": ["src/**/*.ts", "src/**/*.svelte", "vite.config.ts"]
+}

@@ -1,0 +1,15 @@
+node_modules
+dist
+out
+build-output
+.svelte-kit
+.wrangler
+.dev.vars
+*.log
+.DS_Store
+.eslintcache
+apps/worker/public
+*.db
+*.db-*
+apps/desktop/e2e/screenshots
+apps/site/build

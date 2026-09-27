@@ -1,0 +1,46 @@
+appId: dev.juanl.bllt
+productName: Bllt
+copyright: Copyright © 2026 Juan Villarroel
+directories:
+  buildResources: build
+  output: dist
+files:
+  - out/**
+  - package.json
+  - '!**/*.map'
+extraResources:
+  - from: drizzle
+    to: drizzle
+asarUnpack:
+  - resources/**
+  - '**/node_modules/better-sqlite3/**'
+win:
+  executableName: Bllt
+  target:
+    - target: nsis
+      arch: [x64]
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  artifactName: Bllt-${version}-setup.${ext}
+  shortcutName: Bllt
+  uninstallDisplayName: Bllt
+  createDesktopShortcut: always
+  differentialPackage: true
+mac:
+  target: dmg
+  notarize: false
+dmg:
+  artifactName: Bllt-${version}.${ext}
+linux:
+  target: [AppImage]
+  maintainer: bllt@juanl.dev
+  category: Office
+appImage:
+  artifactName: Bllt-${version}.${ext}
+npmRebuild: true
+publish:
+  provider: github
+  owner: juanlvs21
+  repo: bllt

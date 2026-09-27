@@ -1,0 +1,24 @@
+{
+  "name": "bllt",
+  "private": true,
+  "license": "Apache-2.0",
+  "packageManager": "pnpm@11.20.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev:desktop": "pnpm --filter @bllt/desktop dev",
+    "dev:web": "pnpm --filter @bllt/web dev",
+    "dev:worker": "pnpm --filter @bllt/worker dev",
+    "dev:site": "pnpm --filter @bllt/site dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "prettier": "^3.7.4",
+    "prettier-plugin-svelte": "^3.4.0",
+    "typescript": "^5.9.3"
+  }
+}

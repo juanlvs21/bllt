@@ -1,0 +1,33 @@
+name: Deploy site
+
+# Publishes apps/site (landing + docs) to bllt.juanl.dev on Cloudflare Pages.
+# The business Worker is never deployed from here: each business uses the Deploy button.
+on:
+  push:
+    branches: [main]
+    paths:
+      - apps/site/**
+      - packages/ui/**
+      - packages/shared/**
+      - .github/workflows/deploy-site.yml
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+        env:
+          ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+      - run: pnpm --filter @bllt/site build
+      - uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy apps/site/build --project-name=bllt-site --branch=main

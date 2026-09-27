@@ -1,0 +1,155 @@
+<script lang="ts">
+  import { Button } from '@bllt/ui'
+  import DownloadIcon from '@lucide/svelte/icons/download'
+  import WifiOffIcon from '@lucide/svelte/icons/wifi-off'
+  import CoinsIcon from '@lucide/svelte/icons/coins'
+  import SmartphoneIcon from '@lucide/svelte/icons/smartphone'
+  import ShieldIcon from '@lucide/svelte/icons/shield-check'
+  import ReceiptIcon from '@lucide/svelte/icons/receipt-text'
+  import UsersIcon from '@lucide/svelte/icons/users'
+  import { SITE } from '$lib/site'
+
+  const features = [
+    {
+      icon: WifiOffIcon,
+      title: 'Sin internet',
+      text: 'Todo vive en tu PC. Si se cae la conexión, sigues vendiendo.'
+    },
+    {
+      icon: CoinsIcon,
+      title: 'Tasa BCV del día',
+      text: 'La sugiere sola y tú la confirmas. Cada venta guarda la suya.'
+    },
+    {
+      icon: ReceiptIcon,
+      title: 'Ganancias reales',
+      text: 'Guarda el costo de cada venta: las ganancias pasadas no cambian.'
+    },
+    {
+      icon: UsersIcon,
+      title: 'Dueño y empleados',
+      text: 'Tus empleados venden; tú manejas usuarios, respaldos y exportes.'
+    },
+    {
+      icon: ShieldIcon,
+      title: 'Respaldos automáticos',
+      text: 'Una copia al cerrar y otra diaria en Documentos/Bllt.'
+    },
+    {
+      icon: SmartphoneIcon,
+      title: 'Resumen en el teléfono',
+      text: 'Opcional y gratis con Cloudflare: ganancias y tasa desde cualquier lado.'
+    }
+  ]
+</script>
+
+<svelte:head>
+  <title>{SITE.title}</title>
+  <meta
+    name="description"
+    content="Bllt (se lee billete) es una app de escritorio gratis y open source para controlar inventario, ventas y clientes en dólares con la tasa BCV del día. Funciona sin internet."
+  />
+  <meta property="og:title" content={SITE.title} />
+  <meta
+    property="og:description"
+    content="Inventario y ventas en USD con la tasa BCV de cada venta. Sin internet."
+  />
+  <meta property="og:image" content="{SITE.url}/capturas/08-dashboard.png" />
+  <link rel="canonical" href={SITE.url} />
+</svelte:head>
+
+<main>
+  <section class="mx-auto grid max-w-6xl items-center gap-12 px-4 py-16 lg:grid-cols-2 lg:py-24">
+    <div>
+      <p class="text-primary mb-3 text-sm font-semibold">Bllt · {SITE.tagline}</p>
+      <h1 class="text-4xl leading-tight font-extrabold tracking-tight sm:text-5xl">
+        Inventario en dólares<br /><span class="text-primary">y bolívares</span>, sin internet.
+      </h1>
+      <p class="text-muted-foreground mt-5 max-w-lg text-lg">
+        Para el negocio pequeño en Venezuela: registra productos, ventas y clientes en USD y guarda
+        la tasa BCV con la que se hizo cada venta. Gratis y open source.
+      </p>
+      <div class="mt-8 flex flex-wrap gap-3">
+        <Button href={SITE.download} class="h-12 rounded-full px-6 text-base"
+          ><DownloadIcon /> Descargar para Windows</Button
+        >
+        <Button href="/docs/instalacion" variant="outline" class="h-12 rounded-full px-6 text-base"
+          >Cómo instalar</Button
+        >
+      </div>
+      <p class="text-muted-foreground mt-3 text-xs">
+        Windows 10 o superior · última versión en GitHub Releases
+      </p>
+    </div>
+    <div class="relative">
+      <div
+        class="bg-gold absolute -top-6 -right-6 size-40 rounded-full opacity-80 blur-2xl"
+        aria-hidden="true"
+      ></div>
+      <img
+        src="/capturas/08-dashboard.png"
+        alt="Pantalla de inicio de Bllt con la tasa del día y las ganancias en dólares y bolívares"
+        class="ring-foreground/10 relative rounded-2xl shadow-2xl ring-1"
+        width="1366"
+        height="820"
+      />
+    </div>
+  </section>
+
+  <section class="bg-card border-y">
+    <div class="mx-auto grid max-w-6xl gap-8 px-4 py-16 sm:grid-cols-2 lg:grid-cols-3">
+      {#each features as f (f.title)}
+        <div>
+          <div
+            class="bg-secondary text-secondary-foreground mb-3 flex size-11 items-center justify-center rounded-xl"
+          >
+            <f.icon class="size-5" />
+          </div>
+          <h2 class="font-bold">{f.title}</h2>
+          <p class="text-muted-foreground mt-1 text-sm">{f.text}</p>
+        </div>
+      {/each}
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-6xl px-4 py-16">
+    <h2 class="text-2xl font-bold">Una venta de ejemplo</h2>
+    <p class="text-muted-foreground mt-2 max-w-2xl">
+      Tasa confirmada del día: 855,6625 Bs/USD. Vendes 2 Harina PAN a $1,40 (costo $0,95) y un café
+      a $3,90 (costo $2,80). Total <strong class="text-foreground">$6,70 · Bs 5.732,94</strong>;
+      ganancia
+      <strong class="text-primary">$2,00 · Bs 1.711,33</strong>. Si mañana sube la tasa, esa venta
+      sigue valiendo lo mismo.
+    </p>
+    <div class="mt-8 grid gap-6 md:grid-cols-2">
+      <img
+        src="/capturas/06-new-sale.png"
+        alt="Pantalla de nueva venta con lector de código"
+        class="ring-foreground/10 rounded-xl ring-1"
+        loading="lazy"
+      />
+      <img
+        src="/capturas/07-invoice.png"
+        alt="Comprobante de venta con montos en USD y Bs"
+        class="ring-foreground/10 rounded-xl ring-1"
+        loading="lazy"
+      />
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-6xl px-4 pb-20">
+    <div
+      class="bg-primary text-primary-foreground flex flex-wrap items-center justify-between gap-6 rounded-3xl p-10"
+    >
+      <div>
+        <h2 class="text-2xl font-bold">¿Quieres ver el día desde el teléfono?</h2>
+        <p class="text-primary-foreground/80 mt-1">
+          Despliega tu propia nube gratis en Cloudflare con un botón.
+        </p>
+      </div>
+      <Button href="/docs/nube" variant="secondary" class="h-11 rounded-full px-6"
+        >Ver la guía</Button
+      >
+    </div>
+  </section>
+</main>

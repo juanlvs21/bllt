@@ -1,0 +1,4 @@
+# Token the desktop app sends as "Authorization: Bearer <SYNC_TOKEN>". Use a long random value.
+SYNC_TOKEN=
+# Secret used to sign phone sessions. Rotate it to close every session (lost phone).
+JWT_SECRET=

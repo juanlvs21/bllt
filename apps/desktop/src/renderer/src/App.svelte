@@ -1,0 +1,100 @@
+<script lang="ts">
+  import { onMount } from 'svelte'
+  import { ModeWatcher } from 'mode-watcher'
+  import { Toaster, Tooltip } from '@bllt/ui'
+  import type { SessionUser } from '../../types/api'
+  import { router } from './lib/router.svelte'
+  import { session } from './lib/session.svelte'
+  import AppShell from './layout/AppShell.svelte'
+  import { authApi } from './modules/auth/api'
+  import LoginPage from './modules/auth/pages/LoginPage.svelte'
+  import SetupPage from './modules/auth/pages/SetupPage.svelte'
+  import RateConfirmDialog from './modules/rates/components/RateConfirmDialog.svelte'
+  import RateConfirmPage from './modules/rates/pages/RateConfirmPage.svelte'
+  import { rateStore } from './modules/rates/stores/rate.svelte'
+  import DashboardPage from './modules/dashboard/pages/DashboardPage.svelte'
+  import NewSalePage from './modules/sales/pages/NewSalePage.svelte'
+  import SalesPage from './modules/sales/pages/SalesPage.svelte'
+  import ProductsPage from './modules/products/pages/ProductsPage.svelte'
+  import CustomersPage from './modules/customers/pages/CustomersPage.svelte'
+  import SettingsPage from './modules/settings/pages/SettingsPage.svelte'
+
+  let phase = $state<'loading' | 'setup' | 'login' | 'rate' | 'app'>('loading')
+  let rateDialog = $state(false)
+  /** Business date for which the user already saw (or skipped) the rate screen. */
+  let rateGateSeenFor = ''
+
+  async function enter(user: SessionUser) {
+    session.set(user)
+    await rateStore.refresh()
+    const today = rateStore.today?.businessDate ?? ''
+    phase = !rateStore.confirmed && rateGateSeenFor !== today ? 'rate' : 'app'
+    rateGateSeenFor = today
+    router.go('dashboard')
+  }
+
+  async function logout() {
+    await authApi.logout().catch(() => undefined)
+    session.clear()
+  }
+
+  onMount(() => {
+    authApi.status().then((status) => {
+      if (status.needsSetup) phase = 'setup'
+      else if (status.user) void enter(status.user)
+      else phase = 'login'
+    })
+
+    const offSuggestion = window.api.events.onRateSuggestion((s) => rateStore.pushSuggestion(s))
+    // First open of a new business day asks for the rate again.
+    const dayCheck = setInterval(async () => {
+      if (phase === 'app' && rateStore.stale) {
+        await rateStore.refresh()
+        if (!rateStore.confirmed) phase = 'rate'
+      }
+    }, 60_000)
+    return () => {
+      offSuggestion()
+      clearInterval(dayCheck)
+    }
+  })
+
+  // Session cleared anywhere (logout or expired) returns to login.
+  $effect(() => {
+    if (!session.user && (phase === 'app' || phase === 'rate')) phase = 'login'
+  })
+</script>
+
+<ModeWatcher />
+<Toaster richColors position="bottom-right" />
+
+<Tooltip.Provider>
+  {#if phase === 'loading'}
+    <div class="text-muted-foreground flex h-full items-center justify-center">Cargando…</div>
+  {:else if phase === 'setup'}
+    <SetupPage onDone={enter} />
+  {:else if phase === 'login'}
+    <LoginPage onDone={enter} />
+  {:else if phase === 'rate'}
+    <RateConfirmPage onDone={() => (phase = 'app')} />
+  {:else}
+    <AppShell onLogout={logout} onRateClick={() => (rateDialog = true)}>
+      {#key router.page}
+        {#if router.page === 'dashboard'}
+          <DashboardPage onConfirmRate={() => (rateDialog = true)} />
+        {:else if router.page === 'new-sale'}
+          <NewSalePage onConfirmRate={() => (rateDialog = true)} />
+        {:else if router.page === 'sales'}
+          <SalesPage />
+        {:else if router.page === 'products'}
+          <ProductsPage />
+        {:else if router.page === 'customers'}
+          <CustomersPage />
+        {:else if router.page === 'settings'}
+          <SettingsPage />
+        {/if}
+      {/key}
+    </AppShell>
+    <RateConfirmDialog bind:open={rateDialog} />
+  {/if}
+</Tooltip.Provider>

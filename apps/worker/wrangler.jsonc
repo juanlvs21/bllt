@@ -1,0 +1,24 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // One Worker per business: API under /api/* plus the PWA as static assets.
+  "name": "bllt",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "bllt",
+      "migrations_dir": "migrations"
+    }
+  ],
+  // Every 6 hours in Venezuela time (00, 06, 12, 18 UTC-4). Crons run in UTC.
+  "triggers": { "crons": ["0 4,10,16,22 * * *"] }
+}

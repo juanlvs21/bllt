@@ -1,0 +1,17 @@
+@import '@bllt/ui/styles.css';
+@plugin '@tailwindcss/typography';
+
+@source './';
+
+.prose {
+  --tw-prose-links: var(--primary);
+  --tw-prose-headings: var(--foreground);
+  --tw-prose-body: var(--foreground);
+  --tw-prose-bold: var(--foreground);
+  --tw-prose-code: var(--foreground);
+  --tw-prose-bullets: var(--primary);
+  --tw-prose-counters: var(--primary);
+  --tw-prose-quotes: var(--muted-foreground);
+  --tw-prose-th-borders: var(--border);
+  --tw-prose-td-borders: var(--border);
+}

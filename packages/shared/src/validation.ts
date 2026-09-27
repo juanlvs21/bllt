@@ -1,0 +1,128 @@
+/** Zod schemas for every input crossing a boundary (IPC or HTTP). */
+import { z } from 'zod'
+import { EXPORT_FORMATS, RATE_SOURCES, ROLES } from './enums'
+
+const trimmed = (max: number) => z.string().trim().min(1, 'Requerido').max(max)
+const optionalText = (max: number) =>
+  z
+    .string()
+    .trim()
+    .max(max)
+    .transform((v) => (v === '' ? null : v))
+    .nullable()
+    .optional()
+    .transform((v) => v ?? null)
+
+export const cents = z.number().int('Monto inválido').min(0, 'No puede ser negativo')
+export const scaledRate = z.number().int().positive('La tasa debe ser mayor que cero')
+export const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Fecha inválida')
+export const uuid = z.uuid()
+
+export const usernameSchema = z
+  .string()
+  .trim()
+  .min(3, 'Mínimo 3 caracteres')
+  .max(40)
+  .regex(/^[a-zA-Z0-9._-]+$/, 'Solo letras, números, punto, guion y guion bajo')
+export const passwordSchema = z.string().min(8, 'Mínimo 8 caracteres').max(200)
+
+export const productInput = z.object({
+  code: trimmed(64),
+  name: trimmed(160),
+  stock: z.number().int().min(0, 'No puede ser negativo'),
+  costCents: cents,
+  priceCents: cents
+})
+export type ProductInput = z.infer<typeof productInput>
+
+export const productUpdate = productInput.extend({ id: uuid, active: z.boolean() })
+export type ProductUpdate = z.infer<typeof productUpdate>
+
+export const stockAdjust = z.object({ id: uuid, delta: z.number().int() })
+export type StockAdjust = z.infer<typeof stockAdjust>
+
+export const customerInput = z.object({
+  name: trimmed(160),
+  document: optionalText(32),
+  phone: optionalText(32)
+})
+export type CustomerInput = z.infer<typeof customerInput>
+
+export const customerUpdate = customerInput.extend({ id: uuid })
+export type CustomerUpdate = z.infer<typeof customerUpdate>
+
+export const listQuery = z.object({
+  search: z.string().trim().max(160).optional(),
+  includeInactive: z.boolean().optional()
+})
+export type ListQuery = z.infer<typeof listQuery>
+
+export const saleInput = z.object({
+  customerId: uuid.nullable(),
+  items: z
+    .array(z.object({ productId: uuid, qty: z.number().int().positive('Cantidad inválida') }))
+    .min(1, 'Agrega al menos un producto')
+})
+export type SaleInput = z.infer<typeof saleInput>
+
+export const salesQuery = z.object({
+  customerId: uuid.optional(),
+  from: isoDate.optional(),
+  to: isoDate.optional(),
+  limit: z.number().int().positive().max(500).optional()
+})
+export type SalesQuery = z.infer<typeof salesQuery>
+
+export const rateConfirmInput = z.object({
+  bsPerUsd: scaledRate,
+  source: z.enum(RATE_SOURCES),
+  /** Candidate being accepted, if any. */
+  candidateId: z.string().optional()
+})
+export type RateConfirmInput = z.infer<typeof rateConfirmInput>
+
+export const loginInput = z.object({
+  username: z.string().trim().min(1),
+  password: z.string().min(1)
+})
+export type LoginInput = z.infer<typeof loginInput>
+
+export const setupInput = z.object({
+  username: usernameSchema,
+  password: passwordSchema,
+  workerUrl: z.url().optional().or(z.literal('')),
+  syncToken: z.string().trim().max(512).optional()
+})
+export type SetupInput = z.infer<typeof setupInput>
+
+export const recoverInput = z.object({
+  username: z.string().trim().min(1),
+  recoveryCode: z.string().trim().min(1),
+  newPassword: passwordSchema
+})
+export type RecoverInput = z.infer<typeof recoverInput>
+
+export const userCreateInput = z.object({
+  username: usernameSchema,
+  password: passwordSchema,
+  role: z.enum(ROLES)
+})
+export type UserCreateInput = z.infer<typeof userCreateInput>
+
+export const userSetActiveInput = z.object({ id: uuid, active: z.boolean() })
+export const userResetPasswordInput = z.object({ id: uuid, password: passwordSchema })
+export const changePasswordInput = z.object({ current: z.string().min(1), next: passwordSchema })
+
+export const cloudSettingsInput = z.object({
+  workerUrl: z.url('URL inválida').or(z.literal('')),
+  syncToken: z.string().trim().max(512)
+})
+export type CloudSettingsInput = z.infer<typeof cloudSettingsInput>
+
+export const exportInput = z
+  .object({ from: isoDate, to: isoDate, format: z.enum(EXPORT_FORMATS) })
+  .refine((v) => v.from <= v.to, { message: 'La fecha de inicio debe ser anterior a la de fin' })
+export type ExportInput = z.infer<typeof exportInput>
+
+/** Web app: suggest a rate from the phone. */
+export const webRateInput = z.object({ bsPerUsd: scaledRate })

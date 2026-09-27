@@ -1,0 +1,38 @@
+@import '@bllt/ui/styles.css';
+
+@source './';
+
+@layer base {
+  html,
+  body,
+  #app {
+    height: 100%;
+  }
+  body {
+    overflow: hidden;
+  }
+}
+
+@media print {
+  body {
+    overflow: visible;
+  }
+}
+
+/* Printing an invoice prints only the open dialog. */
+@media print {
+  #app,
+  [data-slot='dialog-overlay'] {
+    display: none !important;
+  }
+  [data-slot='dialog-content'] {
+    position: static !important;
+    transform: none !important;
+    box-shadow: none !important;
+    max-width: none !important;
+    width: 100% !important;
+  }
+  [data-slot='dialog-close'] {
+    display: none !important;
+  }
+}
