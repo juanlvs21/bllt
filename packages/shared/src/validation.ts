@@ -57,6 +57,28 @@ export const listQuery = z.object({
 })
 export type ListQuery = z.infer<typeof listQuery>
 
+export const PER_PAGE_OPTIONS = [10, 25, 50, 100] as const
+export type PerPage = (typeof PER_PAGE_OPTIONS)[number]
+export const DEFAULT_PER_PAGE: PerPage = 10
+
+const pagination = {
+  page: z.number().int().min(1).default(1),
+  perPage: z.literal(PER_PAGE_OPTIONS).default(DEFAULT_PER_PAGE)
+}
+
+export const pageQuery = listQuery.extend(pagination)
+export type PageQuery = z.infer<typeof pageQuery>
+/** What callers send: page and perPage are optional. */
+export type PageQueryInput = z.input<typeof pageQuery>
+
+/** One page of a list plus the total count of rows matching the filters. */
+export interface Page<T> {
+  items: T[]
+  total: number
+  page: number
+  perPage: number
+}
+
 export const saleInput = z.object({
   customerId: uuid.nullable(),
   items: z
@@ -72,6 +94,10 @@ export const salesQuery = z.object({
   limit: z.number().int().positive().max(500).optional()
 })
 export type SalesQuery = z.infer<typeof salesQuery>
+
+export const salesPageQuery = salesQuery.omit({ limit: true }).extend(pagination)
+export type SalesPageQuery = z.infer<typeof salesPageQuery>
+export type SalesPageQueryInput = z.input<typeof salesPageQuery>
 
 export const rateConfirmInput = z.object({
   bsPerUsd: scaledRate,

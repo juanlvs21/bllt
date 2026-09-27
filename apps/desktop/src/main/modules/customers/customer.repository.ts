@@ -1,14 +1,19 @@
-import { asc, eq, like, or, sql } from 'drizzle-orm'
+import { asc, count, eq, like, or, sql } from 'drizzle-orm'
 import { SaleStatus, type CustomerRow } from '@bllt/shared'
 import { db, schema } from '../../core/db'
 
 const { customers, sales } = schema
 
+function searchFilter(search?: string) {
+  if (!search) return undefined
+  const term = `%${search}%`
+  return or(like(customers.name, term), like(customers.document, term), like(customers.phone, term))
+}
+
 export const customerRepository = {
   /** Customers with their completed sales count and total. */
-  list(search?: string) {
-    const term = search ? `%${search}%` : null
-    return db()
+  list(search?: string, window?: { limit: number; offset: number }) {
+    const query = db()
       .select({
         id: customers.id,
         name: customers.name,
@@ -23,18 +28,13 @@ export const customerRepository = {
         sales,
         sql`${sales.customerId} = ${customers.id} and ${sales.status} = ${SaleStatus.COMPLETED}`
       )
-      .where(
-        term
-          ? or(
-              like(customers.name, term),
-              like(customers.document, term),
-              like(customers.phone, term)
-            )
-          : undefined
-      )
+      .where(searchFilter(search))
       .groupBy(customers.id)
       .orderBy(asc(customers.name))
-      .all()
+    return window ? query.limit(window.limit).offset(window.offset).all() : query.all()
+  },
+  count(search?: string): number {
+    return db().select({ n: count() }).from(customers).where(searchFilter(search)).get()?.n ?? 0
   },
   findById(id: string): CustomerRow | undefined {
     return db().select().from(customers).where(eq(customers.id, id)).get()

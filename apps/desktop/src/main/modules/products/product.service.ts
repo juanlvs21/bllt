@@ -4,14 +4,16 @@ import {
   nowIso,
   OutboxEntity,
   type ListQuery,
+  type PageQuery,
   type ProductInput,
   type ProductRow,
   type ProductUpdate
 } from '@bllt/shared'
-import type { ProductDto } from '../../../types/api'
+import type { ProductDto, ProductPage } from '../../../types/api'
 import { transaction } from '../../core/db'
 import { notFound } from '../../core/errors'
 import { newId } from '../../utils/id'
+import { pageWindow } from '../../utils/page'
 import { syncService } from '../sync/sync.service'
 import { productRepository } from './product.repository'
 
@@ -27,6 +29,18 @@ function assertCodeFree(code: string, exceptId?: string): void {
 export const productService = {
   list(query: ListQuery): ProductDto[] {
     return productRepository.list(query.search, query.includeInactive).map(toDto)
+  },
+
+  page(query: PageQuery): ProductPage {
+    const { total, inventoryCents, lowStock } = productRepository.summary(
+      query.search,
+      query.includeInactive
+    )
+    const { page, offset } = pageWindow(total, query.page, query.perPage)
+    const items = productRepository
+      .list(query.search, query.includeInactive, { limit: query.perPage, offset })
+      .map(toDto)
+    return { items, total, page, perPage: query.perPage, inventoryCents, lowStock }
   },
 
   findByCode(code: string): ProductDto | null {

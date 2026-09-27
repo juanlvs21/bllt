@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { Badge, Button, Card, Input, Switch, Table } from '@bllt/ui'
+  import { DEFAULT_PER_PAGE, type PerPage } from '@bllt/shared'
+  import { Badge, Button, Card, Input, Pagination, Switch, Table } from '@bllt/ui'
   import PlusIcon from '@lucide/svelte/icons/plus'
   import SearchIcon from '@lucide/svelte/icons/search'
   import PencilIcon from '@lucide/svelte/icons/pencil'
@@ -15,25 +16,31 @@
   let products = $state<ProductDto[]>([])
   let search = $state('')
   let includeInactive = $state(false)
+  let page = $state(1)
+  let perPage = $state<PerPage>(DEFAULT_PER_PAGE)
+  let total = $state(0)
+  let inventoryValue = $state(0)
+  let lowStock = $state(0)
   let editing = $state<ProductDto | null>(null)
   let dialogOpen = $state(false)
   let stockOpen = $state(false)
   let loaded = $state(false)
 
   async function load() {
-    products = (await attempt(() => productsApi.list({ search, includeInactive }))) ?? []
+    const result = await attempt(() => productsApi.page({ search, includeInactive, page, perPage }))
+    products = result?.items ?? []
+    total = result?.total ?? 0
+    inventoryValue = result?.inventoryCents ?? 0
+    lowStock = result?.lowStock ?? 0
+    if (result) page = result.page
     loaded = true
   }
 
   $effect(() => {
-    void search
-    void includeInactive
+    void [search, includeInactive, page, perPage]
     const t = setTimeout(load, 150)
     return () => clearTimeout(t)
   })
-
-  const inventoryValue = $derived(products.reduce((s, p) => s + p.stock * p.costCents, 0))
-  const lowStock = $derived(products.filter((p) => p.active && p.stock <= 3).length)
 
   function edit(product: ProductDto | null) {
     editing = product
@@ -56,14 +63,28 @@
       <Input
         class="h-10 rounded-full pl-9"
         placeholder="Búsqueda rápida por nombre o código"
-        bind:value={search}
+        bind:value={
+          () => search,
+          (value) => {
+            search = value
+            page = 1
+          }
+        }
       />
     </div>
     <label class="text-muted-foreground flex items-center gap-2 text-sm">
-      <Switch bind:checked={includeInactive} /> Mostrar inactivos
+      <Switch
+        bind:checked={
+          () => includeInactive,
+          (value) => {
+            includeInactive = value
+            page = 1
+          }
+        }
+      /> Mostrar inactivos
     </label>
     <div class="text-muted-foreground ml-auto flex gap-4 text-sm">
-      <span>{plural(products.length, 'producto', 'productos')}</span>
+      <span>{plural(total, 'producto', 'productos')}</span>
       <span
         >Inventario al costo: <strong class="text-foreground tabular"
           >{formatUsd(inventoryValue)}</strong
@@ -144,6 +165,7 @@
           {/each}
         </Table.Body>
       </Table.Root>
+      <Pagination class="mt-4" bind:page bind:perPage {total} />
     {/if}
   </Card.Content>
 </Card.Root>

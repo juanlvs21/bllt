@@ -10,6 +10,8 @@ import type {
   ExportInput,
   ListQuery,
   LoginInput,
+  Page,
+  PageQueryInput,
   ProductInput,
   ProductUpdate,
   RateConfirmInput,
@@ -18,6 +20,7 @@ import type {
   Result,
   Role,
   SaleInput,
+  SalesPageQueryInput,
   SalesQuery,
   SaleStatus,
   SetupInput,
@@ -58,6 +61,12 @@ export interface ProductDto {
   priceCents: number
   active: boolean
   updatedAt: string
+}
+
+export interface ProductPage extends Page<ProductDto> {
+  /** Stock × cost of every matching product, not just this page. */
+  inventoryCents: number
+  lowStock: number
 }
 
 export interface CustomerDto {
@@ -120,6 +129,13 @@ export interface SaleDto {
   createdAt: string
   voidedAt: string | null
   items: SaleItemDto[]
+}
+
+export interface SalePage extends Page<SaleDto> {
+  /** Completed sales among every match, not just this page. */
+  completedCount: number
+  totalCents: number
+  profitCents: number
 }
 
 export interface SyncStatus {
@@ -187,6 +203,7 @@ export interface BlltApi {
   }
   products: {
     list(query: ListQuery): R<ProductDto[]>
+    page(query: PageQueryInput): R<ProductPage>
     findByCode(code: string): R<ProductDto | null>
     create(input: ProductInput): R<ProductDto>
     update(input: ProductUpdate): R<ProductDto>
@@ -194,6 +211,7 @@ export interface BlltApi {
   }
   customers: {
     list(query: ListQuery): R<CustomerDto[]>
+    page(query: PageQueryInput): R<Page<CustomerDto>>
     create(input: CustomerInput): R<CustomerDto>
     update(input: CustomerUpdate): R<CustomerDto>
   }
@@ -207,6 +225,7 @@ export interface BlltApi {
   sales: {
     create(input: SaleInput): R<SaleDto>
     list(query: SalesQuery): R<SaleDto[]>
+    page(query: SalesPageQueryInput): R<SalePage>
     get(id: string): R<SaleDto>
     void(id: string): R<SaleDto>
   }

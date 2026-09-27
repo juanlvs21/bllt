@@ -10,6 +10,7 @@ export { default as RateInput } from './brand/RateInput.svelte'
 export { default as Amount } from './brand/Amount.svelte'
 export { default as StatCard } from './brand/StatCard.svelte'
 export { default as SummaryCards } from './brand/SummaryCards.svelte'
+export { default as Pagination } from './brand/Pagination.svelte'
 
 export { Button, buttonVariants } from './components/button'
 export { Input } from './components/input'

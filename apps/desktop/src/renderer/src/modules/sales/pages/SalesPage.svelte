@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { businessDate } from '@bllt/shared'
-  import { Badge, Button, Card, Input, Label, Table } from '@bllt/ui'
+  import { businessDate, DEFAULT_PER_PAGE, type PerPage } from '@bllt/shared'
+  import { Badge, Button, Card, Input, Label, Pagination, Table } from '@bllt/ui'
   import XIcon from '@lucide/svelte/icons/x'
   import type { SaleDto } from '../../../../../types/api'
   import PageHeader from '../../../layout/PageHeader.svelte'
@@ -18,33 +18,44 @@
   let from = $state(initialCustomer ? '' : today)
   let to = $state(initialCustomer ? '' : today)
   let sales = $state<SaleDto[]>([])
+  let page = $state(1)
+  let perPage = $state<PerPage>(DEFAULT_PER_PAGE)
+  let total = $state(0)
+  let summary = $state({ completedCount: 0, totalCents: 0, profitCents: 0 })
   let selected = $state<SaleDto | null>(null)
   let open = $state(false)
 
   async function load() {
-    sales =
-      (await attempt(() =>
-        salesApi.list({
-          customerId: customerId || undefined,
-          from: from && to ? from : undefined,
-          to: from && to ? to : undefined,
-          limit: 500
-        })
-      )) ?? []
+    const result = await attempt(() =>
+      salesApi.page({
+        customerId: customerId || undefined,
+        from: from && to ? from : undefined,
+        to: from && to ? to : undefined,
+        page,
+        perPage
+      })
+    )
+    sales = result?.items ?? []
+    total = result?.total ?? 0
+    summary = result ?? { completedCount: 0, totalCents: 0, profitCents: 0 }
+    if (result) page = result.page
   }
 
+  // A new filter starts over from the first page.
   $effect(() => {
     void [customerId, from, to]
+    page = 1
+  })
+
+  $effect(() => {
+    void [customerId, from, to, page, perPage]
     void load()
   })
 
-  const completed = $derived(sales.filter((s) => s.status === 'COMPLETED'))
-  const total = $derived(completed.reduce((s, x) => s + x.totalCents, 0))
-  const profit = $derived(completed.reduce((s, x) => s + x.profitCents, 0))
-
   function onChanged(updated: SaleDto) {
     selected = updated
-    sales = sales.map((s) => (s.id === updated.id ? updated : s))
+    // Voiding changes the period's totals, so reload them along with the row.
+    void load()
   }
 </script>
 
@@ -90,9 +101,15 @@
       </Badge>
     {/if}
     <div class="text-muted-foreground ml-auto flex gap-5 text-sm">
-      <span>{plural(completed.length, 'venta', 'ventas')}</span>
-      <span>Total <strong class="text-foreground tabular">{formatUsd(total)}</strong></span>
-      <span>Ganancia <strong class="text-primary tabular">{formatUsd(profit)}</strong></span>
+      <span>{plural(summary.completedCount, 'venta', 'ventas')}</span>
+      <span
+        >Total <strong class="text-foreground tabular">{formatUsd(summary.totalCents)}</strong
+        ></span
+      >
+      <span
+        >Ganancia <strong class="text-primary tabular">{formatUsd(summary.profitCents)}</strong
+        ></span
+      >
     </div>
   </Card.Header>
   <Card.Content>
@@ -145,6 +162,7 @@
           {/each}
         </Table.Body>
       </Table.Root>
+      <Pagination class="mt-4" bind:page bind:perPage {total} />
     {/if}
   </Card.Content>
 </Card.Root>

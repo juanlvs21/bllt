@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { Button, Card, Input, Table } from '@bllt/ui'
+  import { DEFAULT_PER_PAGE, type PerPage } from '@bllt/shared'
+  import { Button, Card, Input, Pagination, Table } from '@bllt/ui'
   import PlusIcon from '@lucide/svelte/icons/plus'
   import SearchIcon from '@lucide/svelte/icons/search'
   import PencilIcon from '@lucide/svelte/icons/pencil'
@@ -14,17 +15,23 @@
 
   let customers = $state<CustomerDto[]>([])
   let search = $state('')
+  let page = $state(1)
+  let perPage = $state<PerPage>(DEFAULT_PER_PAGE)
+  let total = $state(0)
   let editing = $state<CustomerDto | null>(null)
   let dialogOpen = $state(false)
   let loaded = $state(false)
 
   async function load() {
-    customers = (await attempt(() => customersApi.list({ search }))) ?? []
+    const result = await attempt(() => customersApi.page({ search, page, perPage }))
+    customers = result?.items ?? []
+    total = result?.total ?? 0
+    if (result) page = result.page
     loaded = true
   }
 
   $effect(() => {
-    void search
+    void [search, page, perPage]
     const t = setTimeout(load, 150)
     return () => clearTimeout(t)
   })
@@ -52,7 +59,13 @@
       <Input
         class="h-10 rounded-full pl-9"
         placeholder="Nombre, cédula o teléfono"
-        bind:value={search}
+        bind:value={
+          () => search,
+          (value) => {
+            search = value
+            page = 1
+          }
+        }
       />
     </div>
   </Card.Header>
@@ -114,6 +127,7 @@
           {/each}
         </Table.Body>
       </Table.Root>
+      <Pagination class="mt-4" bind:page bind:perPage {total} />
     {/if}
   </Card.Content>
 </Card.Root>

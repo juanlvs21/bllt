@@ -10,12 +10,14 @@ import {
   type SaleInput,
   type SaleItemRow,
   type SaleRow,
+  type SalesPageQuery,
   type SalesQuery
 } from '@bllt/shared'
-import type { SaleDto, SessionUser } from '../../../types/api'
+import type { SaleDto, SalePage, SessionUser } from '../../../types/api'
 import { transaction } from '../../core/db'
 import { forbidden, notFound } from '../../core/errors'
 import { newId } from '../../utils/id'
+import { pageWindow } from '../../utils/page'
 import { customerService } from '../customers/customer.service'
 import { productService } from '../products/product.service'
 import { rateService } from '../rates/rate.service'
@@ -42,6 +44,11 @@ function load(filter: SaleListFilter): SaleDto[] {
       items: saleItems.map(({ saleId: _saleId, ...item }) => item)
     }
   })
+}
+
+function toFilter(query: Pick<SalesQuery, 'customerId' | 'from' | 'to'>): SaleListFilter {
+  const range = query.from && query.to ? businessDateRange(query.from, query.to) : undefined
+  return { customerId: query.customerId, start: range?.start, end: range?.end }
 }
 
 function snapshot(sale: SaleRow): void {
@@ -115,13 +122,15 @@ export const saleService = {
   },
 
   list(query: SalesQuery): SaleDto[] {
-    const range = query.from && query.to ? businessDateRange(query.from, query.to) : undefined
-    return load({
-      customerId: query.customerId,
-      start: range?.start,
-      end: range?.end,
-      limit: query.limit
-    })
+    return load({ ...toFilter(query), limit: query.limit })
+  },
+
+  page(query: SalesPageQuery): SalePage {
+    const filter = toFilter(query)
+    const { total, ...summary } = saleRepository.summary(filter)
+    const { page, offset } = pageWindow(total, query.page, query.perPage)
+    const items = load({ ...filter, limit: query.perPage, offset })
+    return { items, total, page, perPage: query.perPage, ...summary }
   },
 
   get(id: string): SaleDto {

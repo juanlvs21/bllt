@@ -37,6 +37,7 @@ const api: BlltApi = {
   },
   products: {
     list: call('products:list'),
+    page: call('products:page'),
     findByCode: call('products:findByCode'),
     create: call('products:create'),
     update: call('products:update'),
@@ -44,6 +45,7 @@ const api: BlltApi = {
   },
   customers: {
     list: call('customers:list'),
+    page: call('customers:page'),
     create: call('customers:create'),
     update: call('customers:update')
   },
@@ -57,6 +59,7 @@ const api: BlltApi = {
   sales: {
     create: call('sales:create'),
     list: call('sales:list'),
+    page: call('sales:page'),
     get: call('sales:get'),
     void: call('sales:void')
   },

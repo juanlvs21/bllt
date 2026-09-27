@@ -6,12 +6,15 @@ import {
   type CustomerInput,
   type CustomerRow,
   type CustomerUpdate,
-  type ListQuery
+  type ListQuery,
+  type Page,
+  type PageQuery
 } from '@bllt/shared'
 import type { CustomerDto } from '../../../types/api'
 import { transaction } from '../../core/db'
 import { notFound } from '../../core/errors'
 import { newId } from '../../utils/id'
+import { pageWindow } from '../../utils/page'
 import { syncService } from '../sync/sync.service'
 import { customerRepository } from './customer.repository'
 
@@ -48,6 +51,13 @@ const toDto = (row: CustomerRow): CustomerDto => ({
 export const customerService = {
   list(query: ListQuery): CustomerDto[] {
     return customerRepository.list(query.search)
+  },
+
+  page(query: PageQuery): Page<CustomerDto> {
+    const total = customerRepository.count(query.search)
+    const { page, offset } = pageWindow(total, query.page, query.perPage)
+    const items = customerRepository.list(query.search, { limit: query.perPage, offset })
+    return { items, total, page, perPage: query.perPage }
   },
 
   create(input: CustomerInput): CustomerDto {
