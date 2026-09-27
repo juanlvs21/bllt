@@ -4,7 +4,7 @@
  * Screenshots land in e2e/screenshots.
  */
 import { _electron as electron } from 'playwright-core'
-import { mkdirSync, mkdtempSync, rmSync } from 'node:fs'
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -110,6 +110,19 @@ try {
   await page.getByRole('button', { name: 'Confirmar venta' }).click()
   await page.getByRole('dialog').getByText('Venta #1', { exact: true }).waitFor()
   await shot('07-invoice', { toasts: false })
+  // Printing writes the receipt PDF; record the path instead of opening a viewer.
+  await app.evaluate(({ shell }) => {
+    shell.openPath = async (file) => {
+      globalThis.openedPdf = file
+      return ''
+    }
+  })
+  await page.getByRole('button', { name: 'Imprimir' }).click()
+  await page.getByRole('button', { name: 'Imprimir' }).and(page.locator(':enabled')).waitFor()
+  const pdf = await app.evaluate(() => globalThis.openedPdf)
+  if (!pdf?.endsWith('Venta-1.pdf') || !existsSync(pdf)) throw new Error(`PDF no generado: ${pdf}`)
+  copyFileSync(pdf, join(shots, '07-receipt.pdf'))
+  step('comprobante en PDF')
   await page.getByRole('button', { name: 'Listo' }).click()
   step('venta anónima')
 

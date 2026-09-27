@@ -21,6 +21,9 @@ export const paths = {
   get exports() {
     return join(documents(), 'Bllt', 'Exports')
   },
+  get receipts() {
+    return join(documents(), 'Bllt', 'Receipts')
+  },
   get migrations() {
     return app.isPackaged
       ? join(process.resourcesPath, 'drizzle')

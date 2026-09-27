@@ -1,5 +1,6 @@
 import { saleInput, salesPageQuery, salesQuery, uuid } from '@bllt/shared'
 import { handle } from '../../core/ipc'
+import { receiptService } from './receipt.service'
 import { saleService } from './sale.service'
 
 export function registerSaleIpc(): void {
@@ -8,4 +9,5 @@ export function registerSaleIpc(): void {
   handle('sales:page', { input: salesPageQuery }, (query) => saleService.page(query))
   handle('sales:get', { input: uuid }, (id) => saleService.get(id))
   handle('sales:void', { input: uuid }, (id, user) => saleService.void(user, id))
+  handle('sales:openPdf', { input: uuid }, (id) => receiptService.openPdf(id))
 }

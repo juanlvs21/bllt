@@ -241,6 +241,8 @@ export interface BlltApi {
     page(query: SalesPageQueryInput): R<SalePage>
     get(id: string): R<SaleDto>
     void(id: string): R<SaleDto>
+    /** Writes the receipt PDF to Documents/Bllt/Receipts, opens it and returns its path. */
+    openPdf(id: string): R<string>
   }
   dashboard: {
     summary(): R<DashboardSummary>

@@ -15,6 +15,14 @@
   }: { open?: boolean; sale: SaleDto | null; onChanged?: (sale: SaleDto) => void } = $props()
 
   let confirmVoid = $state(false)
+  let printing = $state(false)
+
+  async function printPdf() {
+    if (!sale) return
+    printing = true
+    await attempt(() => salesApi.openPdf(sale.id))
+    printing = false
+  }
 
   async function voidSale() {
     if (!sale) return
@@ -31,14 +39,15 @@
   <Dialog.Content class="invoice-dialog sm:max-w-2xl">
     {#if sale}
       <InvoiceBody {sale} />
-      <Dialog.Footer class="print:hidden">
+      <Dialog.Footer>
         {#if session.isAdmin && sale.status === 'COMPLETED'}
           <Button variant="destructive" class="mr-auto" onclick={() => (confirmVoid = true)}>
             <BanIcon /> Anular venta
           </Button>
         {/if}
-        <Button variant="outline" class="rounded-full" onclick={() => window.print()}>
-          <PrinterIcon /> Imprimir
+        <Button variant="outline" class="rounded-full" disabled={printing} onclick={printPdf}>
+          <PrinterIcon />
+          {printing ? 'Generando PDF…' : 'Imprimir'}
         </Button>
         <Button class="rounded-full px-6" onclick={() => (open = false)}>Listo</Button>
       </Dialog.Footer>
