@@ -18,7 +18,8 @@
     "build:win": "pnpm build && electron-builder --win",
     "build:mac": "pnpm build && electron-builder --mac",
     "build:linux": "pnpm build && electron-builder --linux",
-    "test:e2e": "electron-vite build && node e2e/smoke.mjs"
+    "test:e2e": "electron-vite build && node e2e/smoke.mjs",
+    "seed:demo": "ELECTRON_RUN_AS_NODE=1 electron scripts/seed-demo.mjs"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",
