@@ -22,7 +22,22 @@ const app = await electron.launch({
 })
 const page = await app.firstWindow()
 await page.setViewportSize({ width: 1366, height: 820 })
-const shot = (name) => page.screenshot({ path: join(shots, `${name}.png`) })
+// Wait for dialog/toast enter and exit animations so captures never show a
+// half-open or half-closed dialog. Infinite animations (spinners) are skipped.
+const settle = () =>
+  page.evaluate(() =>
+    Promise.all(
+      document
+        .getAnimations()
+        .filter((a) => a.effect?.getTiming().iterations !== Infinity)
+        .map((a) => a.finished.catch(() => {}))
+    )
+  )
+const shot = async (name, { toasts = true } = {}) => {
+  if (!toasts) await page.locator('[data-sonner-toast]').first().waitFor({ state: 'detached', timeout: 10_000 })
+  await settle()
+  await page.screenshot({ path: join(shots, `${name}.png`) })
+}
 const step = (label) => console.log(`✓ ${label}`)
 
 try {
@@ -64,6 +79,7 @@ try {
     if (code === '7593') await shot('04-product-dialog')
     await page.getByRole('button', { name: 'Guardar' }).click()
     await page.getByRole('cell', { name }).waitFor()
+    await page.getByRole('dialog').waitFor({ state: 'detached' })
   }
   await shot('05-products')
   step('productos')
@@ -77,10 +93,10 @@ try {
     await search.press('Enter')
   }
   await page.waitForTimeout(300)
-  await shot('06-new-sale')
+  await shot('06-new-sale', { toasts: false })
   await page.getByRole('button', { name: 'Registrar venta' }).click()
   await page.getByRole('dialog').getByText('Venta #1', { exact: true }).waitFor()
-  await shot('07-invoice')
+  await shot('07-invoice', { toasts: false })
   await page.getByRole('button', { name: 'Listo' }).click()
   step('venta anónima')
 
