@@ -9,7 +9,7 @@ Ve a **Nueva venta**.
 1. Escanea el código o escríbelo y pulsa **Enter**. También puedes tocar el producto en la lista.
 2. Ajusta cantidades con **+** y **−**. Bllt no deja vender más de lo que hay en inventario.
 3. **Cliente (opcional):** déjalo en *Venta anónima* o búscalo por nombre o cédula. Puedes registrar uno nuevo ahí mismo.
-4. Pulsa **Registrar venta**.
+4. Pulsa **Registrar venta**. Se abre un resumen con los productos, el cliente y los totales en USD y Bs; revísalo y pulsa **Confirmar venta** (o **Volver** para seguir editando).
 
 Se descuenta el inventario y se abre el comprobante con los montos en USD y Bs. Puedes imprimirlo.
 

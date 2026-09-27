@@ -19,6 +19,12 @@
   }
 }
 
+/* Invoice dialogs fit the window: the items scroll, header and totals stay put. */
+.invoice-dialog {
+  max-height: calc(100vh - 2rem);
+  grid-template-rows: minmax(0, 1fr) auto;
+}
+
 /* Printing an invoice prints only the open dialog. */
 @media print {
   #app,
@@ -35,4 +41,19 @@
   [data-slot='dialog-close'] {
     display: none !important;
   }
+  .invoice-dialog,
+  .invoice-items {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+  /* Tailwind centers dialogs with `translate`; kept apart from `transform` so the
+     minifier doesn't fold it away. */
+  .invoice-dialog {
+    translate: none !important;
+  }
+}
+
+/* The items box is the scroller, so the table header can stick to it. */
+.invoice-items [data-slot='table-container'] {
+  overflow: visible;
 }

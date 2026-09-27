@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Button, Card, Input, Separator, toast } from '@bllt/ui'
+  import { Button, Card, Dialog, Input, Separator, toast } from '@bllt/ui'
   import ScanIcon from '@lucide/svelte/icons/scan-barcode'
   import MinusIcon from '@lucide/svelte/icons/minus'
   import PlusIcon from '@lucide/svelte/icons/plus'
@@ -10,10 +10,12 @@
   import PageHeader from '../../../layout/PageHeader.svelte'
   import { attempt } from '../../../lib/api'
   import { formatBs, formatRate, formatUsd, usdCentsToBsCents } from '../../../lib/format'
+  import { session } from '../../../lib/session.svelte'
   import { productsApi } from '../../products/api'
   import { rateStore } from '../../rates/stores/rate.svelte'
   import { salesApi } from '../api'
   import CustomerPicker from '../components/CustomerPicker.svelte'
+  import InvoiceBody from '../components/InvoiceBody.svelte'
   import InvoiceDialog from '../components/InvoiceDialog.svelte'
   import { cart } from '../stores/cart.svelte'
 
@@ -25,8 +27,38 @@
   let busy = $state(false)
   let lastSale = $state<SaleDto | null>(null)
   let invoiceOpen = $state(false)
+  let confirmOpen = $state(false)
 
   const rate = $derived(rateStore.confirmed?.bsPerUsd ?? null)
+
+  /** The cart shaped as a sale, for the summary shown before registering it. */
+  const draft = $derived<SaleDto>({
+    id: '',
+    number: 0,
+    customerId: cart.customer?.id ?? null,
+    customerName: cart.customer?.name ?? null,
+    customerDocument: cart.customer?.document ?? null,
+    userId: session.user?.id ?? '',
+    username: session.user?.username ?? '',
+    rate: rate ?? 0,
+    totalCents: cart.totalCents,
+    profitCents: cart.lines.reduce(
+      (s, l) => s + l.qty * (l.product.priceCents - l.product.costCents),
+      0
+    ),
+    status: 'COMPLETED',
+    createdAt: '',
+    voidedAt: null,
+    items: cart.lines.map((l) => ({
+      id: l.product.id,
+      productId: l.product.id,
+      productCode: l.product.code,
+      productName: l.product.name,
+      qty: l.qty,
+      priceCents: l.product.priceCents,
+      costCents: l.product.costCents
+    }))
+  })
 
   async function loadResults() {
     results = (await attempt(() => productsApi.list({ search }))) ?? []
@@ -63,6 +95,7 @@
 
   async function checkout() {
     if (cart.lines.length === 0) return
+    confirmOpen = false
     busy = true
     const sale = await attempt(() =>
       salesApi.create({
@@ -151,19 +184,19 @@
       </Card.Content>
     </Card.Root>
 
-    <Card.Root class="h-fit xl:sticky xl:top-0">
-      <Card.Header>
+    <Card.Root class="h-fit xl:sticky xl:top-0 xl:max-h-[calc(100vh-11rem)]">
+      <Card.Header class="shrink-0">
         <Card.Title class="text-primary">Venta</Card.Title>
         <Card.Description>Cliente (opcional)</Card.Description>
         <div class="pt-1"><CustomerPicker bind:value={cart.customer} /></div>
       </Card.Header>
-      <Card.Content class="space-y-3">
+      <Card.Content class="flex min-h-0 flex-col gap-3 *:shrink-0">
         {#if cart.lines.length === 0}
           <p class="text-muted-foreground py-8 text-center text-sm">
             Agrega productos para empezar.
           </p>
         {:else}
-          <ul class="divide-y">
+          <ul class="-mr-2 min-h-0 shrink! divide-y overflow-y-auto pr-2">
             {#each cart.lines as line (line.product.id)}
               <li class="flex items-center gap-3 py-2.5">
                 <div class="min-w-0 flex-1">
@@ -228,7 +261,7 @@
         <Button
           class="h-12 w-full rounded-full text-base"
           disabled={busy || cart.lines.length === 0}
-          onclick={checkout}
+          onclick={() => (confirmOpen = true)}
         >
           Registrar venta
         </Button>
@@ -239,5 +272,19 @@
     </Card.Root>
   </div>
 {/if}
+
+<Dialog.Root bind:open={confirmOpen}>
+  <Dialog.Content class="invoice-dialog sm:max-w-2xl">
+    <InvoiceBody sale={draft} draft />
+    <Dialog.Footer>
+      <Button variant="outline" class="rounded-full" onclick={() => (confirmOpen = false)}>
+        Volver
+      </Button>
+      <Button class="rounded-full px-6" disabled={busy} onclick={checkout}>
+        Confirmar venta
+      </Button>
+    </Dialog.Footer>
+  </Dialog.Content>
+</Dialog.Root>
 
 <InvoiceDialog bind:open={invoiceOpen} sale={lastSale} onChanged={(s) => (lastSale = s)} />

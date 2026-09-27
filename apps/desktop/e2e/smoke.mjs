@@ -95,6 +95,8 @@ try {
   await page.waitForTimeout(300)
   await shot('06-new-sale', { toasts: false })
   await page.getByRole('button', { name: 'Registrar venta' }).click()
+  await page.getByRole('dialog').getByText('Resumen de venta').waitFor()
+  await page.getByRole('button', { name: 'Confirmar venta' }).click()
   await page.getByRole('dialog').getByText('Venta #1', { exact: true }).waitFor()
   await shot('07-invoice', { toasts: false })
   await page.getByRole('button', { name: 'Listo' }).click()

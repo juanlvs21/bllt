@@ -20,7 +20,15 @@
         Funciona sin internet. Cada venta guarda la tasa del día, así tus ganancias nunca cambian.
       </p>
     </div>
-    <p class="text-primary-foreground/70 text-sm">Bllt · se lee "billete"</p>
+    <p class="text-primary-foreground/70 relative z-10 text-sm">
+      Hecho por
+      <a
+        class="hover:text-primary-foreground underline underline-offset-4"
+        href="https://juanl.dev"
+        target="_blank"
+        rel="noreferrer">juanl.dev</a
+      >
+    </p>
     <div
       class="bg-gold/90 absolute -right-24 -bottom-24 size-72 rounded-full opacity-90"
       aria-hidden="true"

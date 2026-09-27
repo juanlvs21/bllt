@@ -11,7 +11,7 @@
 <Card.Root class="max-w-lg">
   <Card.Content class="space-y-3 py-6">
     <Logo size={40} />
-    <p class="text-muted-foreground text-sm">Versión {info?.version} · se lee “billete”</p>
+    <p class="text-muted-foreground text-sm">Versión {info?.version}</p>
     <p class="text-sm">
       El código de Bllt es open source bajo la Apache License 2.0. El nombre, el logo y la identidad
       visual son marcas de Juan Villarroel.
