@@ -42,6 +42,9 @@ const step = (label) => console.log(`✓ ${label}`)
 
 try {
   // First run: owner + recovery code.
+  await page.getByLabel('Nombre del negocio').fill('Bodega La Esquina')
+  await page.getByLabel('RIF (opcional)').fill('j123456789')
+  await page.getByRole('button', { name: 'Continuar' }).click()
   await page.getByLabel('Usuario').fill('dueno')
   await page.getByLabel('Contraseña', { exact: true }).fill('secreto123')
   await page.getByLabel('Repite la contraseña').fill('secreto123')
@@ -61,6 +64,7 @@ try {
   await shot('03-rate')
   await page.getByRole('button', { name: 'Confirmar tasa' }).click()
   await page.getByRole('heading', { name: 'Inicio' }).waitFor()
+  await page.getByText('J-12345678-9').waitFor()
   step('tasa confirmada')
 
   // Products.

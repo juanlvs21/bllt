@@ -60,7 +60,7 @@ Guías completas en [bllt.juanl.dev](https://bllt.juanl.dev):
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/juanlvs21/bllt/tree/main/apps/worker)
 
-El botón despliega **solo** `apps/worker`: la API (Hono + D1), el cron de la tasa y la PWA del teléfono. Pide dos secretos, `SYNC_TOKEN` y `JWT_SECRET`. Guía: [bllt.juanl.dev/docs/nube](https://bllt.juanl.dev/docs/nube).
+El botón despliega **solo** `apps/worker`: la API (Hono + D1), el cron de la tasa y la PWA del teléfono. Pide dos secretos, `SYNC_TOKEN` y `JWT_SECRET`. El nombre del negocio en la PWA sale de la variable de compilación `BUSINESS_NAME` (en Cloudflare: variables de compilación de Workers Builds, en *Settings → Build*; en local: `apps/web/.env.local`, ver `apps/web/.env.example`). Guía: [bllt.juanl.dev/docs/nube](https://bllt.juanl.dev/docs/nube).
 
 ## Monorepo
 

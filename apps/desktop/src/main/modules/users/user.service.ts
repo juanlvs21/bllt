@@ -20,6 +20,7 @@ import { transaction } from '../../core/db'
 import { forbidden, notFound } from '../../core/errors'
 import { session } from '../../core/session'
 import { newId } from '../../utils/id'
+import { businessService } from '../business/business.service'
 import { SettingKey, settingsService } from '../settings/settings.service'
 import { syncService } from '../sync/sync.service'
 import { userRepository } from './user.repository'
@@ -64,6 +65,7 @@ export const userService = {
       throw new DomainError(ErrorCode.CONFLICT, 'Bllt ya está configurado')
     const row = await newUserRow(input.username, input.password, Role.ADMIN)
     const recoveryCode = await storeRecoveryCode()
+    businessService.save(input.business)
     transaction(() => {
       userRepository.insert(row)
       syncUser(row)

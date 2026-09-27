@@ -2,6 +2,8 @@ import { settingsRepository } from './settings.repository'
 
 /** Local-only settings; never synced. */
 export const SettingKey = {
+  BUSINESS_NAME: 'business_name',
+  BUSINESS_RIF: 'business_rif',
   WORKER_URL: 'worker_url',
   SYNC_TOKEN: 'sync_token',
   BACKUP_DIR: 'backup_dir',

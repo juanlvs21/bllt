@@ -7,6 +7,7 @@
   import { session } from './lib/session.svelte'
   import AppShell from './layout/AppShell.svelte'
   import { authApi } from './modules/auth/api'
+  import { businessStore } from './modules/business/stores/business.svelte'
   import LoginPage from './modules/auth/pages/LoginPage.svelte'
   import SetupPage from './modules/auth/pages/SetupPage.svelte'
   import RateConfirmDialog from './modules/rates/components/RateConfirmDialog.svelte'
@@ -39,6 +40,7 @@
   }
 
   onMount(() => {
+    void businessStore.refresh()
     authApi.status().then((status) => {
       if (status.needsSetup) phase = 'setup'
       else if (status.user) void enter(status.user)

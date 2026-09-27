@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   businessDate,
   businessDayRange,
+  businessInput,
   businessMonthRange,
   formatBusinessTime,
   hashPassword,
@@ -67,5 +68,22 @@ describe('password', () => {
     const stored = await hashPassword('secreto123', 1000)
     expect(await verifyPassword('secreto123', stored)).toBe(true)
     expect(await verifyPassword('otra', stored)).toBe(false)
+  })
+})
+
+describe('business', () => {
+  it('normalizes the RIF and makes it optional', () => {
+    const parse = (rif: string | null | undefined) => businessInput.parse({ name: ' Tienda ', rif })
+    expect(parse('j123456789')).toEqual({ name: 'Tienda', rif: 'J-12345678-9' })
+    expect(parse(' v-01234567-0 ').rif).toBe('V-01234567-0')
+    expect(parse('').rif).toBeNull()
+    expect(parse(undefined).rif).toBeNull()
+    expect(parse(null).rif).toBeNull()
+  })
+
+  it('rejects malformed RIFs and empty names', () => {
+    expect(businessInput.safeParse({ name: 'Tienda', rif: 'X-12345678-9' }).success).toBe(false)
+    expect(businessInput.safeParse({ name: 'Tienda', rif: 'J-1234567-9' }).success).toBe(false)
+    expect(businessInput.safeParse({ name: '  ', rif: '' }).success).toBe(false)
   })
 })

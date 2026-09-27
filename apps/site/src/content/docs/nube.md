@@ -39,6 +39,16 @@ En Bllt: **Configuración → Nube**. Pega la URL y el `SYNC_TOKEN`, pulsa **Gua
 
 En el inicio verás “Sincronizado hace 1 min”. Si la conexión cae, los cambios se acumulan y suben solos al volver.
 
-## 5. Instala la app en el teléfono
+## 5. Pon el nombre de tu negocio en el teléfono (opcional)
+
+La app del teléfono muestra “Bllt” si no le dices otro nombre. Para que en la pantalla de inicio del teléfono aparezca el nombre de tu negocio:
+
+1. En Cloudflare abre tu Worker → **Settings** y busca, dentro de la sección **Build**, las variables de compilación (*Build variables and secrets*). No son las *Variables and Secrets* del Worker: esas solo existen mientras el Worker corre.
+2. Agrega la variable `BUSINESS_NAME` con el nombre (por ejemplo, `Bodega La Esquina`).
+3. Vuelve a desplegar: en **Deployments**, pulsa *Retry build* en el último, o haz cualquier cambio en tu repositorio.
+
+Es una variable **de compilación**, no un secreto del Worker: el nombre se escribe dentro de la app al construirla. Si ya instalaste la app en el teléfono, bórrala y vuelve a instalarla para ver el nombre nuevo en el icono.
+
+## 6. Instala la app en el teléfono
 
 Sigue la guía [Instalar en el teléfono](/docs/guias/telefono).

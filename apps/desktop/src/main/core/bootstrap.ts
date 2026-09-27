@@ -1,4 +1,5 @@
 import { registerAppIpc } from '../modules/app/app.ipc'
+import { registerBusinessIpc } from '../modules/business/business.ipc'
 import { registerBackupIpc } from '../modules/backups/backup.ipc'
 import { backupService } from '../modules/backups/backup.service'
 import { registerCustomerIpc } from '../modules/customers/customer.ipc'
@@ -18,6 +19,7 @@ export function bootstrap(): void {
   openDatabase()
   registerAppIpc()
   registerUserIpc()
+  registerBusinessIpc()
   registerProductIpc()
   registerCustomerIpc()
   registerRateIpc()

@@ -1,14 +1,18 @@
 <script lang="ts">
+  import { businessInput } from '@bllt/shared'
   import { Button, Checkbox, Input, Label, Card } from '@bllt/ui'
   import CopyIcon from '@lucide/svelte/icons/copy'
   import type { SessionUser } from '../../../../../types/api'
   import { attempt } from '../../../lib/api'
+  import { businessStore } from '../../business/stores/business.svelte'
   import { authApi } from '../api'
   import AuthLayout from '../components/AuthLayout.svelte'
 
   let { onDone }: { onDone: (user: SessionUser) => void } = $props()
 
-  let step = $state<1 | 2 | 3>(1)
+  let step = $state<1 | 2 | 3 | 4>(1)
+  let businessName = $state('')
+  let rif = $state('')
   let username = $state('')
   let password = $state('')
   let confirm = $state('')
@@ -20,19 +24,27 @@
   let savedCode = $state(false)
   let error = $state('')
 
-  function next(event: SubmitEvent) {
+  function nextBusiness(event: SubmitEvent) {
+    event.preventDefault()
+    const parsed = businessInput.safeParse({ name: businessName, rif })
+    error = parsed.success ? '' : (parsed.error.issues[0]?.message ?? 'Datos inválidos')
+    if (parsed.success) step = 2
+  }
+
+  function nextOwner(event: SubmitEvent) {
     event.preventDefault()
     error = ''
     if (username.trim().length < 3) error = 'El usuario debe tener al menos 3 caracteres'
     else if (password.length < 8) error = 'La contraseña debe tener al menos 8 caracteres'
     else if (password !== confirm) error = 'Las contraseñas no coinciden'
-    else step = 2
+    else step = 3
   }
 
   async function finish(skipCloud: boolean) {
     busy = true
     const result = await attempt(() =>
       authApi.setup({
+        business: { name: businessName, rif },
         username: username.trim(),
         password,
         workerUrl: skipCloud ? '' : workerUrl.trim(),
@@ -43,18 +55,43 @@
     if (!result) return
     recoveryCode = result.recoveryCode
     createdUser = result.user
-    step = 3
+    void businessStore.refresh()
+    step = 4
   }
 </script>
 
 <AuthLayout>
-  <p class="text-primary mb-1 text-sm font-semibold">Paso {step} de 3</p>
+  <p class="text-primary mb-1 text-sm font-semibold">Paso {step} de 4</p>
   {#if step === 1}
     <h1 class="mb-2 text-2xl font-bold">Bienvenido a Bllt</h1>
     <p class="text-muted-foreground mb-6 text-sm">
-      Crea el usuario del dueño. Tendrá el rol de administrador y podrá crear empleados después.
+      ¿Cómo se llama tu negocio? Aparece en el menú y en los comprobantes. Puedes cambiarlo después
+      en Configuración.
     </p>
-    <form class="space-y-4" onsubmit={next}>
+    <form class="space-y-4" onsubmit={nextBusiness}>
+      <div class="space-y-1.5">
+        <Label for="business-name">Nombre del negocio</Label>
+        <Input
+          id="business-name"
+          class="h-10"
+          bind:value={businessName}
+          maxlength={120}
+          autofocus
+        />
+      </div>
+      <div class="space-y-1.5">
+        <Label for="rif">RIF (opcional)</Label>
+        <Input id="rif" class="h-10 font-mono" placeholder="J-12345678-9" bind:value={rif} />
+      </div>
+      {#if error}<p class="text-destructive text-sm">{error}</p>{/if}
+      <Button type="submit" size="lg" class="h-11 w-full rounded-full">Continuar</Button>
+    </form>
+  {:else if step === 2}
+    <h1 class="mb-2 text-2xl font-bold">Usuario del dueño</h1>
+    <p class="text-muted-foreground mb-6 text-sm">
+      Tendrá el rol de administrador y podrá crear empleados después.
+    </p>
+    <form class="space-y-4" onsubmit={nextOwner}>
       <div class="space-y-1.5">
         <Label for="username">Usuario</Label>
         <Input id="username" class="h-10" bind:value={username} autocomplete="username" autofocus />
@@ -81,8 +118,9 @@
       </div>
       {#if error}<p class="text-destructive text-sm">{error}</p>{/if}
       <Button type="submit" size="lg" class="h-11 w-full rounded-full">Continuar</Button>
+      <Button variant="link" class="px-0" onclick={() => ((step = 1), (error = ''))}>Volver</Button>
     </form>
-  {:else if step === 2}
+  {:else if step === 3}
     <h1 class="mb-2 text-2xl font-bold">Nube (opcional)</h1>
     <p class="text-muted-foreground mb-6 text-sm">
       Si desplegaste tu Worker de Cloudflare, pega aquí su URL y el SYNC_TOKEN para ver el resumen
@@ -121,7 +159,7 @@
           Guardar y seguir
         </Button>
       </div>
-      <Button variant="link" class="px-0" onclick={() => (step = 1)}>Volver</Button>
+      <Button variant="link" class="px-0" onclick={() => (step = 2)}>Volver</Button>
     </div>
   {:else}
     <h1 class="mb-2 text-2xl font-bold">Código de recuperación</h1>

@@ -28,6 +28,7 @@ const api: BlltApi = {
     recover: call('auth:recover'),
     changePassword: call('auth:changePassword')
   },
+  business: { get: call('business:get'), save: call('business:save') },
   users: {
     list: call('users:list'),
     create: call('users:create'),

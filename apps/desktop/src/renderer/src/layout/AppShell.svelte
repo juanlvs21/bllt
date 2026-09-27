@@ -13,6 +13,7 @@
   import { router, type Page } from '../lib/router.svelte'
   import { session } from '../lib/session.svelte'
   import { formatRate } from '../lib/format'
+  import { businessStore } from '../modules/business/stores/business.svelte'
   import { rateStore } from '../modules/rates/stores/rate.svelte'
 
   let {
@@ -35,6 +36,14 @@
   <aside class="bg-sidebar text-sidebar-foreground flex w-64 shrink-0 flex-col border-r">
     <div class="px-6 pt-7 pb-8">
       <Logo size={34} />
+      {#if businessStore.name}
+        <p class="mt-3 truncate text-sm font-semibold" title={businessStore.name}>
+          {businessStore.name}
+        </p>
+        {#if businessStore.rif}
+          <p class="text-muted-foreground font-mono text-xs">{businessStore.rif}</p>
+        {/if}
+      {/if}
     </div>
     <nav class="flex flex-1 flex-col gap-1 px-3">
       {#each items as item (item.page)}

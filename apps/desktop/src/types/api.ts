@@ -3,6 +3,7 @@
  * Main implements it, preload forwards it, renderer consumes it.
  */
 import type {
+  BusinessInputRaw,
   CloudSettingsInput,
   CustomerInput,
   CustomerUpdate,
@@ -23,7 +24,7 @@ import type {
   SalesPageQueryInput,
   SalesQuery,
   SaleStatus,
-  SetupInput,
+  SetupInputRaw,
   StockAdjust,
   UserCreateInput
 } from '@bllt/shared'
@@ -173,6 +174,12 @@ export interface ExportProgress {
   message?: string
 }
 
+export interface BusinessDto {
+  /** Empty until the owner fills it in (installs from before this setting). */
+  name: string
+  rif: string | null
+}
+
 export interface AppInfo {
   version: string
   platform: string
@@ -188,11 +195,15 @@ export interface BlltApi {
   }
   auth: {
     status(): R<AuthStatus>
-    setup(input: SetupInput): R<SetupResult>
+    setup(input: SetupInputRaw): R<SetupResult>
     login(input: LoginInput): R<SessionUser>
     logout(): R<void>
     recover(input: RecoverInput): R<void>
     changePassword(input: { current: string; next: string }): R<void>
+  }
+  business: {
+    get(): R<BusinessDto>
+    save(input: BusinessInputRaw): R<BusinessDto>
   }
   users: {
     list(): R<UserDto[]>

@@ -2,6 +2,7 @@
   import { Button, Dialog, Input, Label } from '@bllt/ui'
   import type { SessionUser } from '../../../../../types/api'
   import { attempt } from '../../../lib/api'
+  import { businessStore } from '../../business/stores/business.svelte'
   import { authApi } from '../api'
   import AuthLayout from '../components/AuthLayout.svelte'
 
@@ -45,7 +46,13 @@
 
 <AuthLayout>
   <h1 class="mb-2 text-2xl font-bold">Iniciar sesión</h1>
-  <p class="text-muted-foreground mb-6 text-sm">Entra con tu usuario de este negocio.</p>
+  <p class="text-muted-foreground mb-6 text-sm">
+    {#if businessStore.name}
+      Entra con tu usuario de <strong class="text-foreground">{businessStore.name}</strong>.
+    {:else}
+      Entra con tu usuario de este negocio.
+    {/if}
+  </p>
   <form class="space-y-4" onsubmit={login}>
     <div class="space-y-1.5">
       <Label for="username">Usuario</Label>

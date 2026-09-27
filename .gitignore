@@ -13,3 +13,5 @@ apps/worker/public
 *.db-*
 apps/desktop/e2e/screenshots
 apps/site/build
+.env.local
+.env.*.local

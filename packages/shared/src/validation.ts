@@ -113,13 +113,44 @@ export const loginInput = z.object({
 })
 export type LoginInput = z.infer<typeof loginInput>
 
+/**
+ * Venezuelan RIF: type letter, 8 digits and a check digit. Accepts it with or
+ * without dashes and stores it as `J-12345678-9`.
+ */
+export const rifSchema = z
+  .string()
+  .trim()
+  .toUpperCase()
+  .transform((v) => v.replace(/[\s.-]/g, ''))
+  .pipe(z.string().regex(/^[VEJPGC]\d{9}$/, 'RIF inválido. Ejemplo: J-12345678-9'))
+  .transform((v) => `${v[0]}-${v.slice(1, 9)}-${v[9]}`)
+
+const optionalRif = z
+  .string()
+  .trim()
+  .transform((v) => (v === '' ? null : v))
+  .nullable()
+  .optional()
+  .transform((v) => v ?? null)
+  .pipe(rifSchema.nullable())
+
+export const businessInput = z.object({
+  name: z.string().trim().min(1, 'Escribe el nombre del negocio').max(120),
+  rif: optionalRif
+})
+export type BusinessInput = z.infer<typeof businessInput>
+/** What callers send: the RIF may be omitted or blank. */
+export type BusinessInputRaw = z.input<typeof businessInput>
+
 export const setupInput = z.object({
+  business: businessInput,
   username: usernameSchema,
   password: passwordSchema,
   workerUrl: z.url().optional().or(z.literal('')),
   syncToken: z.string().trim().max(512).optional()
 })
 export type SetupInput = z.infer<typeof setupInput>
+export type SetupInputRaw = z.input<typeof setupInput>
 
 export const recoverInput = z.object({
   username: z.string().trim().min(1),

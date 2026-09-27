@@ -15,6 +15,7 @@
   import WifiOffIcon from '@lucide/svelte/icons/wifi-off'
   import { onMount } from 'svelte'
   import { api, ApiError } from '../../../lib/api'
+  import { businessName } from '../../../lib/business'
   import { summaryCache } from '../../../lib/cache'
 
   let {
@@ -51,8 +52,12 @@
   const s = $derived(data?.summary)
 </script>
 
-<header class="flex items-center justify-between py-2">
-  <Logo size={28} />
+<header class="flex items-center justify-between gap-3 py-2">
+  {#if businessName}
+    <p class="min-w-0 truncate text-lg font-bold">{businessName}</p>
+  {:else}
+    <Logo size={28} />
+  {/if}
   <div class="flex items-center gap-1">
     <Button variant="ghost" size="icon" disabled={loading} onclick={load} aria-label="Actualizar">
       <RefreshIcon class={loading ? 'animate-spin' : ''} />

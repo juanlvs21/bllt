@@ -8,6 +8,7 @@
     formatUsd,
     usdCentsToBsCents
   } from '../../../lib/format'
+  import { businessStore } from '../../business/stores/business.svelte'
 
   /** `draft`: a sale not saved yet, so there's no number or date. */
   let { sale, draft = false }: { sale: SaleDto; draft?: boolean } = $props()
@@ -16,7 +17,14 @@
 <div class="invoice flex min-h-0 flex-col gap-5 *:shrink-0">
   <div class="flex items-start justify-between">
     <div>
-      <Logo size={30} />
+      {#if businessStore.name}
+        <p class="text-lg leading-tight font-bold">{businessStore.name}</p>
+        {#if businessStore.rif}
+          <p class="text-muted-foreground font-mono text-xs">RIF {businessStore.rif}</p>
+        {/if}
+      {:else}
+        <Logo size={30} />
+      {/if}
       <p class="text-muted-foreground mt-2 text-xs">Comprobante interno · no fiscal</p>
     </div>
     <div class="pr-8 text-right">

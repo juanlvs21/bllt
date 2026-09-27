@@ -5,6 +5,7 @@
   import { session } from '../../../lib/session.svelte'
   import AboutTab from '../components/AboutTab.svelte'
   import AccountTab from '../components/AccountTab.svelte'
+  import BusinessTab from '../components/BusinessTab.svelte'
   import BackupsTab from '../components/BackupsTab.svelte'
   import CloudTab from '../components/CloudTab.svelte'
   import ExportTab from '../components/ExportTab.svelte'
@@ -19,6 +20,7 @@
   <Tabs.List>
     <Tabs.Trigger value="account">Mi cuenta</Tabs.Trigger>
     {#if session.isAdmin}
+      <Tabs.Trigger value="business">Negocio</Tabs.Trigger>
       <Tabs.Trigger value="users">Usuarios</Tabs.Trigger>
       <Tabs.Trigger value="cloud">Nube</Tabs.Trigger>
       <Tabs.Trigger value="backups">Respaldos</Tabs.Trigger>
@@ -28,6 +30,7 @@
   </Tabs.List>
   <Tabs.Content value="account"><AccountTab /></Tabs.Content>
   {#if session.isAdmin}
+    <Tabs.Content value="business"><BusinessTab /></Tabs.Content>
     <Tabs.Content value="users"><UsersTab /></Tabs.Content>
     <Tabs.Content value="cloud"><CloudTab /></Tabs.Content>
     <Tabs.Content value="backups"><BackupsTab /></Tabs.Content>
