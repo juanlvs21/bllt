@@ -49,7 +49,7 @@
     <Card.Header>
       <Card.Title>Respaldos automáticos</Card.Title>
       <Card.Description>
-        Se crea uno al cerrar Bllt y otro cada día si queda abierto. Se guardan los últimos 30 días.
+        Se crea uno al abrir Bllt por primera vez cada día. Se guardan los últimos 7 días.
         Copia la carpeta a un pendrive de vez en cuando.
       </Card.Description>
     </Card.Header>

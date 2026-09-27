@@ -28,5 +28,5 @@ export const paths = {
   }
 }
 
-export const BACKUP_RETENTION_DAYS = 30
+export const BACKUP_RETENTION_DAYS = 7
 export const SYNC_INTERVAL_MS = 45_000

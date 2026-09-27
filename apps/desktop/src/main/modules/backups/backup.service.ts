@@ -10,7 +10,6 @@ import { backupRepository } from './backup.repository'
 
 const PREFIX = 'bllt-'
 const DAY_MS = 24 * 60 * 60 * 1000
-let timer: NodeJS.Timeout | null = null
 
 function dir(): string {
   return settingsService.get(SettingKey.BACKUP_DIR) || paths.defaultBackups
@@ -63,20 +62,11 @@ export const backupService = {
     return info(file)
   },
 
-  /** Daily backup while the app stays open; checked every hour. */
-  schedule(): void {
-    const check = () => {
-      const last = settingsService.get(SettingKey.LAST_BACKUP_AT)
-      if (!last || businessDate(new Date(last)) !== businessDate()) {
-        this.runNow().catch((error) => console.error('[backup]', error))
-      }
-    }
-    setTimeout(check, 60_000)
-    timer = setInterval(check, 60 * 60 * 1000)
-  },
-
-  stop(): void {
-    if (timer) clearInterval(timer)
+  /** One automatic backup per day, taken the first time the app opens that day. */
+  runDaily(): void {
+    const last = settingsService.get(SettingKey.LAST_BACKUP_AT)
+    if (last && businessDate(new Date(last)) === businessDate()) return
+    this.runNow().catch((error) => console.error('[backup]', error))
   },
 
   async chooseDir(): Promise<BackupSettings> {

@@ -2,7 +2,7 @@ import { app, BrowserWindow, dialog, shell } from 'electron'
 import { join } from 'node:path'
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-import { beforeQuit, bootstrap, quitState } from './core/bootstrap'
+import { beforeQuit, bootstrap } from './core/bootstrap'
 import { initUpdater } from './libs/updater'
 
 // Isolated data folder for tests and development.
@@ -89,10 +89,5 @@ if (!app.requestSingleInstanceLock()) {
     if (process.platform !== 'darwin') app.quit()
   })
 
-  // Automatic backup every time the app closes.
-  app.on('before-quit', (event) => {
-    if (quitState.done) return
-    event.preventDefault()
-    beforeQuit().finally(() => app.quit())
-  })
+  app.on('before-quit', beforeQuit)
 }

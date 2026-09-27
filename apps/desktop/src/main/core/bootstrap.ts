@@ -28,26 +28,10 @@ export function bootstrap(): void {
   registerExportIpc()
   rateService.init()
   syncService.start()
-  backupService.schedule()
+  backupService.runDaily()
 }
 
-let backedUpOnQuit = false
-
-/** Takes the closing backup; returns true when quitting may continue. */
-export async function beforeQuit(): Promise<void> {
-  if (backedUpOnQuit) return
-  backedUpOnQuit = true
+/** Stops background jobs before quitting. */
+export function beforeQuit(): void {
   syncService.stop()
-  backupService.stop()
-  try {
-    await backupService.runNow()
-  } catch (error) {
-    console.error('[backup] al cerrar', error)
-  }
-}
-
-export const quitState = {
-  get done() {
-    return backedUpOnQuit
-  }
 }
