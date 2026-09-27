@@ -1,9 +1,62 @@
-# Bllt
+<p align="center">
+  <a href="https://bllt.juanl.dev">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="assets/brand/logo-dark.svg" />
+      <img src="assets/brand/logo-light.svg" alt="Bllt" width="260" />
+    </picture>
+  </a>
+</p>
+
+<p align="center">
+  Inventario, ventas y clientes en dólares con la tasa BCV de cada venta. Funciona sin internet.
+</p>
+
+<p align="center">
+  <a href="https://github.com/juanlvs21/bllt/releases/latest"><img alt="Última versión" src="https://img.shields.io/github/v/release/juanlvs21/bllt?label=versi%C3%B3n&color=1bae8f" /></a>
+  <a href="https://github.com/juanlvs21/bllt/releases"><img alt="Descargas" src="https://img.shields.io/github/downloads/juanlvs21/bllt/total?label=descargas&color=e7a93b" /></a>
+  <a href="https://github.com/juanlvs21/bllt/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/juanlvs21/bllt/actions/workflows/ci.yml/badge.svg" /></a>
+  <a href="https://github.com/juanlvs21/bllt/actions/workflows/release-desktop.yml"><img alt="Release" src="https://github.com/juanlvs21/bllt/actions/workflows/release-desktop.yml/badge.svg" /></a>
+  <a href="LICENSE"><img alt="Licencia Apache 2.0" src="https://img.shields.io/github/license/juanlvs21/bllt?label=licencia" /></a>
+  <img alt="Windows" src="https://img.shields.io/badge/Windows-10%2B-27302f?logo=windows" />
+  <a href="https://bllt.juanl.dev"><img alt="Sitio" src="https://img.shields.io/badge/sitio-bllt.juanl.dev-1bae8f" /></a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/juanlvs21/bllt/releases/latest"><b>Descargar</b></a> ·
+  <a href="https://bllt.juanl.dev/docs/instalacion">Instalación</a> ·
+  <a href="https://bllt.juanl.dev/docs/guias/primer-arranque">Guías</a> ·
+  <a href="https://bllt.juanl.dev/docs/nube">Nube (opcional)</a> ·
+  <a href="https://github.com/juanlvs21/bllt/issues">Reportar un problema</a>
+</p>
+
+<p align="center">
+  <img src="apps/site/static/capturas/08-dashboard.png" alt="Dashboard de Bllt" width="820" />
+</p>
 
 **Bllt** (se lee “billete”) es una app de escritorio open source para que un negocio pequeño en Venezuela controle inventario, ventas y clientes en USD, registrando la tasa BCV de cada venta. Funciona 100% sin internet; la nube es opcional y solo sirve para ver el resumen y sugerir la tasa desde el teléfono.
 
-- Sitio y guías: [bllt.juanl.dev](https://bllt.juanl.dev)
-- Descargas: [GitHub Releases](https://github.com/juanlvs21/bllt/releases/latest)
+## Capturas
+
+| Tasa del día | Productos |
+| --- | --- |
+| <img src="apps/site/static/capturas/03-rate.png" alt="Confirmar la tasa del día" /> | <img src="apps/site/static/capturas/05-products.png" alt="Inventario de productos" /> |
+| **Nueva venta** | **Factura** |
+| <img src="apps/site/static/capturas/06-new-sale.png" alt="Registrar una venta" /> | <img src="apps/site/static/capturas/07-invoice.png" alt="Factura de una venta" /> |
+
+## Documentación
+
+Guías completas en [bllt.juanl.dev](https://bllt.juanl.dev):
+
+- [Instalar en Windows](https://bllt.juanl.dev/docs/instalacion)
+- [Primer arranque](https://bllt.juanl.dev/docs/guias/primer-arranque)
+- [Confirmar la tasa del día](https://bllt.juanl.dev/docs/guias/tasa-del-dia)
+- [Registrar una venta](https://bllt.juanl.dev/docs/guias/ventas)
+- [Usuarios y roles](https://bllt.juanl.dev/docs/guias/usuarios)
+- [Respaldos](https://bllt.juanl.dev/docs/guias/respaldos)
+- [Exportar ventas](https://bllt.juanl.dev/docs/guias/exportar)
+- [Nube en Cloudflare (opcional)](https://bllt.juanl.dev/docs/nube), [instalar en el teléfono](https://bllt.juanl.dev/docs/guias/telefono) y [si pierdes el teléfono](https://bllt.juanl.dev/docs/guias/telefono-perdido)
+
+## Nube opcional
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/juanlvs21/bllt/tree/main/apps/worker)
 
@@ -20,7 +73,7 @@ apps/
 packages/
   shared/    @bllt/shared: enums, Zod, esquema Drizzle, dinero, hora UTC−4, contrato del sync, ganancias
   ui/        @bllt/ui: componentes shadcn-svelte + piezas de marca
-assets/brand/  logo e íconos (todos los derechos reservados)
+assets/brand/  logo e íconos en SVG/PNG (todos los derechos reservados)
 ```
 
 Requisitos: Node 22+ y pnpm 11.

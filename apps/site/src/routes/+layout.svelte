@@ -33,7 +33,14 @@
   <div
     class="text-muted-foreground mx-auto flex max-w-6xl flex-wrap gap-x-6 gap-y-2 px-4 py-8 text-sm"
   >
-    <span>© 2026 Juan Villarroel · Bllt, {SITE.tagline}</span>
+    <span
+      >© 2026 Bllt by <a
+        class="text-foreground hover:text-primary font-medium underline-offset-4 hover:underline"
+        href="https://juanl.dev"
+        target="_blank"
+        rel="noopener">juanl.dev</a
+      ></span
+    >
     <a class="hover:text-foreground" href="/licencia">Licencia y marca</a>
     <a class="hover:text-foreground" href={SITE.repo}>GitHub</a>
     <a class="hover:text-foreground" href="mailto:bllt@juanl.dev">bllt@juanl.dev</a>

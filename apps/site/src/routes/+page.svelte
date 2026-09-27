@@ -61,7 +61,6 @@
 <main>
   <section class="mx-auto grid max-w-6xl items-center gap-12 px-4 py-16 lg:grid-cols-2 lg:py-24">
     <div>
-      <p class="text-primary mb-3 text-sm font-semibold">Bllt · {SITE.tagline}</p>
       <h1 class="text-4xl leading-tight font-extrabold tracking-tight sm:text-5xl">
         Inventario en dólares<br /><span class="text-primary">y bolívares</span>, sin internet.
       </h1>

@@ -1,7 +1,6 @@
 export const SITE = {
   name: 'Bllt',
   title: 'Bllt, inventario en dólares y bolívares',
-  tagline: 'se lee billete',
   url: 'https://bllt.juanl.dev',
   repo: 'https://github.com/juanlvs21/bllt',
   /** Always points to the newest GitHub release. */
