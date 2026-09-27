@@ -30,4 +30,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy apps/site/build --project-name=bllt-site --branch=main
+          # Reuse the wrangler already installed in apps/worker; installing it at the
+          # workspace root fails (pnpm refuses `add` there without -w).
+          workingDirectory: apps/worker
+          command: pages deploy ../site/build --project-name=bllt-site --branch=main
