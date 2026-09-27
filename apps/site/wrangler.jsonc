@@ -1,0 +1,11 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // Landing + docs as a static-assets-only Worker (no script). Kept apart from the
+  // business Worker "bllt" in apps/worker so a deploy here never overwrites it.
+  "name": "bllt-site",
+  "compatibility_date": "2026-09-26",
+  "assets": {
+    "directory": "./build",
+    "not_found_handling": "404-page"
+  }
+}

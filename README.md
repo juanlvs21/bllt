@@ -53,7 +53,7 @@ pnpm install
 ## Publicar
 
 - **Escritorio:** crea un tag `vX.Y.Z` y GitHub Actions compila el instalador de Windows y lo publica en Releases (`.github/workflows/release-desktop.yml`).
-- **Sitio:** cada merge a `main` que toque `apps/site` se publica en Cloudflare Pages. Necesita los secrets `CLOUDFLARE_API_TOKEN` y `CLOUDFLARE_ACCOUNT_ID` y un proyecto de Pages llamado `bllt-site` con el dominio `bllt.juanl.dev`.
+- **Sitio:** lo publica Cloudflare Workers Builds, conectado al repo de GitHub: cada push a `main` construye `apps/site` y lo despliega con `pnpm exec wrangler deploy` (config en `apps/site/wrangler.jsonc`, Worker `bllt-site`, dominio `bllt.juanl.dev`).
 
 ## Licencia y marca
 
