@@ -11,6 +11,16 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* bits-ui exposes state through data-state / data-orientation; the shadcn
+ * components are written against these shorthand variants. */
+@custom-variant data-open (&:where([data-state='open']));
+@custom-variant data-closed (&:where([data-state='closed']));
+@custom-variant data-checked (&:where([data-state='checked']));
+@custom-variant data-unchecked (&:where([data-state='unchecked']));
+@custom-variant data-active (&:where([data-state='active']));
+@custom-variant data-horizontal (&:where([data-orientation='horizontal']));
+@custom-variant data-vertical (&:where([data-orientation='vertical']));
+
 :root {
   --radius: 0.75rem;
 
