@@ -57,6 +57,13 @@ if (!app.requestSingleInstanceLock()) {
 
   app.whenReady().then(() => {
     electronApp.setAppUserModelId('dev.juanl.bllt')
+    app.setAboutPanelOptions({
+      applicationName: 'Bllt',
+      credits: 'Inventario en dólares y bolívares',
+      copyright: 'Copyright © 2026 Juan Villarroel'
+    })
+    // Packaged builds get the icon from the bundle; in dev the Dock shows Electron's.
+    if (is.dev) app.dock?.setIcon(icon)
     app.on('browser-window-created', (_, window) => optimizer.watchWindowShortcuts(window))
 
     try {
