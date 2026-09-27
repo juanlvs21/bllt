@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Component, Snippet } from 'svelte'
-  import { Badge, Button, DropdownMenu, Logo, cn } from '@bllt/ui'
+  import { AlertDialog, Badge, Button, DropdownMenu, Logo, cn } from '@bllt/ui'
   import HomeIcon from '@lucide/svelte/icons/house'
   import CartIcon from '@lucide/svelte/icons/shopping-cart'
   import ReceiptIcon from '@lucide/svelte/icons/receipt-text'
@@ -22,6 +22,8 @@
     onRateClick
   }: { children: Snippet; onLogout: () => void; onRateClick: () => void } = $props()
 
+  let confirmLogout = $state(false)
+
   const items: { page: Page; label: string; icon: Component }[] = [
     { page: 'dashboard', label: 'Inicio', icon: HomeIcon },
     { page: 'new-sale', label: 'Nueva venta', icon: CartIcon },
@@ -34,17 +36,32 @@
 
 <div class="flex h-full">
   <aside class="bg-sidebar text-sidebar-foreground flex w-64 shrink-0 flex-col border-r">
-    <div class="px-6 pt-7 pb-8">
-      <Logo size={34} />
-      {#if businessStore.name}
-        <p class="mt-3 truncate text-sm font-semibold" title={businessStore.name}>
-          {businessStore.name}
-        </p>
-        {#if businessStore.rif}
-          <p class="text-muted-foreground font-mono text-xs">{businessStore.rif}</p>
+    {#if businessStore.name}
+      <!-- The business is the identity of the app; Bllt signs at the bottom. -->
+      <div class="flex items-center gap-3 px-5 pt-6 pb-7">
+        {#if businessStore.logo}
+          <img
+            src={businessStore.logo}
+            alt=""
+            class="bg-card size-11 shrink-0 rounded-xl border object-contain p-1"
+          />
+        {:else}
+          <span class="bg-card flex size-11 shrink-0 items-center justify-center rounded-xl border">
+            <Logo wordmark={false} size={30} />
+          </span>
         {/if}
-      {/if}
-    </div>
+        <div class="min-w-0">
+          <p class="line-clamp-2 leading-tight font-bold break-words" title={businessStore.name}>
+            {businessStore.name}
+          </p>
+          {#if businessStore.rif}
+            <p class="text-muted-foreground mt-0.5 font-mono text-xs">{businessStore.rif}</p>
+          {/if}
+        </div>
+      </div>
+    {:else}
+      <div class="px-6 pt-7 pb-8"><Logo size={34} /></div>
+    {/if}
     <nav class="flex flex-1 flex-col gap-1 px-3">
       {#each items as item (item.page)}
         {@const active = router.page === item.page}
@@ -65,11 +82,17 @@
     <div class="p-3">
       <button
         class="text-muted-foreground hover:bg-sidebar-accent/60 flex w-full items-center gap-4 rounded-xl px-4 py-3 text-left text-[0.95rem] font-medium"
-        onclick={onLogout}
+        onclick={() => (confirmLogout = true)}
       >
         <LogOutIcon class="size-5" />
         Salir
       </button>
+      {#if businessStore.name}
+        <div class="text-muted-foreground mt-2 flex items-center gap-2 border-t px-4 pt-4 text-xs">
+          <Logo size={18} />
+          <span>Inventario en $ y Bs</span>
+        </div>
+      {/if}
     </div>
   </aside>
 
@@ -111,7 +134,8 @@
           </DropdownMenu.Label>
           <DropdownMenu.Separator />
           <DropdownMenu.Item onclick={() => router.go('settings')}>Mi cuenta</DropdownMenu.Item>
-          <DropdownMenu.Item onclick={onLogout}>Cerrar sesión</DropdownMenu.Item>
+          <DropdownMenu.Item onclick={() => (confirmLogout = true)}>Cerrar sesión</DropdownMenu.Item
+          >
         </DropdownMenu.Content>
       </DropdownMenu.Root>
     </header>
@@ -120,3 +144,18 @@
     </main>
   </div>
 </div>
+
+<AlertDialog.Root bind:open={confirmLogout}>
+  <AlertDialog.Content>
+    <AlertDialog.Header>
+      <AlertDialog.Title>¿Cerrar sesión?</AlertDialog.Title>
+      <AlertDialog.Description>
+        Tendrás que escribir tu usuario y contraseña para volver a entrar.
+      </AlertDialog.Description>
+    </AlertDialog.Header>
+    <AlertDialog.Footer>
+      <AlertDialog.Cancel>Cancelar</AlertDialog.Cancel>
+      <AlertDialog.Action onclick={onLogout}>Cerrar sesión</AlertDialog.Action>
+    </AlertDialog.Footer>
+  </AlertDialog.Content>
+</AlertDialog.Root>

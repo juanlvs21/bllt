@@ -4,6 +4,7 @@
   import CopyIcon from '@lucide/svelte/icons/copy'
   import type { SessionUser } from '../../../../../types/api'
   import { attempt } from '../../../lib/api'
+  import LogoField from '../../business/components/LogoField.svelte'
   import { businessStore } from '../../business/stores/business.svelte'
   import { authApi } from '../api'
   import AuthLayout from '../components/AuthLayout.svelte'
@@ -13,6 +14,7 @@
   let step = $state<1 | 2 | 3 | 4>(1)
   let businessName = $state('')
   let rif = $state('')
+  let logo = $state<string | null>(null)
   let username = $state('')
   let password = $state('')
   let confirm = $state('')
@@ -26,7 +28,7 @@
 
   function nextBusiness(event: SubmitEvent) {
     event.preventDefault()
-    const parsed = businessInput.safeParse({ name: businessName, rif })
+    const parsed = businessInput.safeParse({ name: businessName, rif, logo })
     error = parsed.success ? '' : (parsed.error.issues[0]?.message ?? 'Datos inválidos')
     if (parsed.success) step = 2
   }
@@ -44,7 +46,7 @@
     busy = true
     const result = await attempt(() =>
       authApi.setup({
-        business: { name: businessName, rif },
+        business: { name: businessName, rif, logo },
         username: username.trim(),
         password,
         workerUrl: skipCloud ? '' : workerUrl.trim(),
@@ -65,8 +67,8 @@
   {#if step === 1}
     <h1 class="mb-2 text-2xl font-bold">Bienvenido a Bllt</h1>
     <p class="text-muted-foreground mb-6 text-sm">
-      ¿Cómo se llama tu negocio? Aparece en el menú y en los comprobantes. Puedes cambiarlo después
-      en Configuración.
+      ¿Cómo se llama tu negocio? El nombre y el logo aparecen en el menú y en los comprobantes.
+      Puedes cambiarlo después en Configuración.
     </p>
     <form class="space-y-4" onsubmit={nextBusiness}>
       <div class="space-y-1.5">
@@ -83,6 +85,7 @@
         <Label for="rif">RIF (opcional)</Label>
         <Input id="rif" class="h-10 font-mono" placeholder="J-12345678-9" bind:value={rif} />
       </div>
+      <LogoField bind:value={logo} />
       {#if error}<p class="text-destructive text-sm">{error}</p>{/if}
       <Button type="submit" size="lg" class="h-11 w-full rounded-full">Continuar</Button>
     </form>

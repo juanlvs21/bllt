@@ -134,9 +134,29 @@ const optionalRif = z
   .transform((v) => v ?? null)
   .pipe(rifSchema.nullable())
 
+/** Max length of the logo data URL (~375 KB of image). The UI downsizes it first. */
+export const LOGO_MAX_LENGTH = 500_000
+
+/** Business logo as a PNG, JPEG or WebP data URL; blank or missing means none. */
+const optionalLogo = z
+  .string()
+  .trim()
+  .transform((v) => (v === '' ? null : v))
+  .nullable()
+  .optional()
+  .transform((v) => v ?? null)
+  .pipe(
+    z
+      .string()
+      .max(LOGO_MAX_LENGTH, 'El logo es demasiado grande')
+      .regex(/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/]+=*$/, 'Logo inválido')
+      .nullable()
+  )
+
 export const businessInput = z.object({
   name: z.string().trim().min(1, 'Escribe el nombre del negocio').max(120),
-  rif: optionalRif
+  rif: optionalRif,
+  logo: optionalLogo
 })
 export type BusinessInput = z.infer<typeof businessInput>
 /** What callers send: the RIF may be omitted or blank. */

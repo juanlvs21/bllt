@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Button, Dialog, Input, Label } from '@bllt/ui'
+  import { Button, Dialog, Input, Label, Logo } from '@bllt/ui'
   import type { SessionUser } from '../../../../../types/api'
   import { attempt } from '../../../lib/api'
   import { businessStore } from '../../business/stores/business.svelte'
@@ -45,6 +45,20 @@
 </script>
 
 <AuthLayout>
+  {#if businessStore.logo}
+    <img
+      src={businessStore.logo}
+      alt={businessStore.name}
+      class="bg-card mb-5 size-20 rounded-2xl border object-contain shadow-sm"
+    />
+  {:else}
+    <!-- On small screens AuthLayout already shows the Bllt logo above. -->
+    <span
+      class="bg-card mb-5 hidden size-20 items-center justify-center rounded-2xl border shadow-sm lg:flex"
+    >
+      <Logo wordmark={false} size={52} />
+    </span>
+  {/if}
   <h1 class="mb-2 text-2xl font-bold">Iniciar sesión</h1>
   <p class="text-muted-foreground mb-6 text-sm">
     {#if businessStore.name}

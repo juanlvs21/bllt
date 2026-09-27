@@ -34,7 +34,11 @@ const settle = () =>
     )
   )
 const shot = async (name, { toasts = true } = {}) => {
-  if (!toasts) await page.locator('[data-sonner-toast]').first().waitFor({ state: 'detached', timeout: 10_000 })
+  if (!toasts)
+    await page
+      .locator('[data-sonner-toast]')
+      .first()
+      .waitFor({ state: 'detached', timeout: 10_000 })
   await settle()
   await page.screenshot({ path: join(shots, `${name}.png`) })
 }
@@ -44,6 +48,8 @@ try {
   // First run: owner + recovery code.
   await page.getByLabel('Nombre del negocio').fill('Bodega La Esquina')
   await page.getByLabel('RIF (opcional)').fill('j123456789')
+  await page.locator('#logo').setInputFiles(join(root, 'build', 'icon.png'))
+  await page.getByAltText('Logo del negocio').waitFor()
   await page.getByRole('button', { name: 'Continuar' }).click()
   await page.getByLabel('Usuario').fill('dueno')
   await page.getByLabel('Contraseña', { exact: true }).fill('secreto123')
@@ -65,6 +71,7 @@ try {
   await page.getByRole('button', { name: 'Confirmar tasa' }).click()
   await page.getByRole('heading', { name: 'Inicio' }).waitFor()
   await page.getByText('J-12345678-9').waitFor()
+  await page.locator('aside img[src^="data:image/"]').waitFor()
   step('tasa confirmada')
 
   // Products.
@@ -152,6 +159,17 @@ try {
     await shot('10-synced')
     step('sincronizado con el Worker')
   }
+
+  // Logout asks first; the login shows the business logo.
+  await page.getByRole('button', { name: 'Salir' }).click()
+  await page.getByRole('button', { name: 'Cancelar' }).click()
+  await page.getByRole('alertdialog').waitFor({ state: 'detached' })
+  await page.getByRole('button', { name: 'Salir' }).click()
+  await page.getByRole('button', { name: 'Cerrar sesión' }).click()
+  await page.getByRole('heading', { name: 'Iniciar sesión' }).waitFor()
+  await page.getByAltText('Bodega La Esquina').waitFor()
+  await shot('11-login')
+  step('cerrar sesión con confirmación')
 } catch (error) {
   await shot('error')
   throw error

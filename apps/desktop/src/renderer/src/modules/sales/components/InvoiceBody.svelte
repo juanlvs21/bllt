@@ -17,6 +17,13 @@
 <div class="invoice flex min-h-0 flex-col gap-5 *:shrink-0">
   <div class="flex items-start justify-between">
     <div>
+      {#if businessStore.logo}
+        <img
+          src={businessStore.logo}
+          alt=""
+          class="mb-2 max-h-14 max-w-40 object-contain object-left"
+        />
+      {/if}
       {#if businessStore.name}
         <p class="text-lg leading-tight font-bold">{businessStore.name}</p>
         {#if businessStore.rif}

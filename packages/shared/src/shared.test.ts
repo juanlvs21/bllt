@@ -6,6 +6,7 @@ import {
   businessMonthRange,
   formatBusinessTime,
   hashPassword,
+  LOGO_MAX_LENGTH,
   parseRate,
   parseUsdToCents,
   summarizeProfit,
@@ -74,7 +75,7 @@ describe('password', () => {
 describe('business', () => {
   it('normalizes the RIF and makes it optional', () => {
     const parse = (rif: string | null | undefined) => businessInput.parse({ name: ' Tienda ', rif })
-    expect(parse('j123456789')).toEqual({ name: 'Tienda', rif: 'J-12345678-9' })
+    expect(parse('j123456789')).toEqual({ name: 'Tienda', rif: 'J-12345678-9', logo: null })
     expect(parse(' v-01234567-0 ').rif).toBe('V-01234567-0')
     expect(parse('').rif).toBeNull()
     expect(parse(undefined).rif).toBeNull()
@@ -85,5 +86,18 @@ describe('business', () => {
     expect(businessInput.safeParse({ name: 'Tienda', rif: 'X-12345678-9' }).success).toBe(false)
     expect(businessInput.safeParse({ name: 'Tienda', rif: 'J-1234567-9' }).success).toBe(false)
     expect(businessInput.safeParse({ name: '  ', rif: '' }).success).toBe(false)
+  })
+
+  it('accepts image data URLs as logo and rejects anything else', () => {
+    const parse = (logo: string | null | undefined) =>
+      businessInput.safeParse({ name: 'Tienda', logo })
+    expect(parse('data:image/png;base64,iVBORw0KGgo=').data?.logo).toBe(
+      'data:image/png;base64,iVBORw0KGgo='
+    )
+    expect(parse('').data?.logo).toBeNull()
+    expect(parse(null).data?.logo).toBeNull()
+    expect(parse('data:image/svg+xml;base64,PHN2Zz4=').success).toBe(false)
+    expect(parse('https://example.com/logo.png').success).toBe(false)
+    expect(parse(`data:image/png;base64,${'A'.repeat(LOGO_MAX_LENGTH)}`).success).toBe(false)
   })
 })

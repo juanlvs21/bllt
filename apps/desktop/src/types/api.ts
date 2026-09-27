@@ -178,6 +178,8 @@ export interface BusinessDto {
   /** Empty until the owner fills it in (installs from before this setting). */
   name: string
   rif: string | null
+  /** PNG, JPEG or WebP data URL. */
+  logo: string | null
 }
 
 export interface AppInfo {
