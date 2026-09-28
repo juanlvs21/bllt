@@ -1,0 +1,58 @@
+name: Cloud branch
+
+# The Deploy to Cloudflare button copies one directory into the user's new repo, so it
+# points at the `cloud` branch: a trimmed workspace (worker, web, shared, ui) generated
+# by scripts/cloud-branch.mjs with wrangler.jsonc at its root.
+on:
+  push:
+    branches: [main]
+    paths:
+      - apps/worker/**
+      - apps/web/**
+      - packages/shared/**
+      - packages/ui/**
+      - pnpm-lock.yaml
+      - tsconfig.base.json
+      - scripts/cloud-branch.mjs
+      - .github/workflows/cloud-branch.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency: cloud-branch
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: pnpm/action-setup@v6.1.0
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version: 24
+      - name: Generate
+        run: node scripts/cloud-branch.mjs "$RUNNER_TEMP/cloud"
+      - name: Check it installs and builds
+        run: |
+          cp -a "$RUNNER_TEMP/cloud" "$RUNNER_TEMP/check"
+          cd "$RUNNER_TEMP/check"
+          pnpm install --frozen-lockfile
+          pnpm build
+          pnpm exec wrangler deploy --dry-run
+      - name: Commit to cloud
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          if git fetch origin cloud; then
+            git worktree add "$RUNNER_TEMP/branch" FETCH_HEAD
+          else
+            git worktree add --orphan -b cloud "$RUNNER_TEMP/branch"
+          fi
+          cd "$RUNNER_TEMP/branch"
+          git rm -rq --ignore-unmatch .
+          cp -a "$RUNNER_TEMP/cloud/." .
+          git add -A
+          git diff --cached --quiet && exit 0
+          git commit -m "Nube desde ${GITHUB_SHA::7}"
+          git push origin HEAD:refs/heads/cloud

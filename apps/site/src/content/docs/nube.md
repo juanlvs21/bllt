@@ -18,7 +18,7 @@ Entra a [dash.cloudflare.com](https://dash.cloudflare.com/sign-up) y regístrate
 
 ## 2. Pulsa el botón de despliegue
 
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/juanlvs21/bllt/tree/main/apps/worker)
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/juanlvs21/bllt/tree/cloud)
 
 El asistente crea el Worker, la base D1 y la tarea programada. Te pedirá dos secretos:
 

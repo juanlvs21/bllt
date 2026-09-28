@@ -58,9 +58,9 @@ Guías completas en [bllt.juanl.dev](https://bllt.juanl.dev):
 
 ## Nube opcional
 
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/juanlvs21/bllt/tree/main/apps/worker)
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/juanlvs21/bllt/tree/cloud)
 
-El botón despliega **solo** `apps/worker`: la API (Hono + D1), el cron de la tasa y la PWA del teléfono. Pide dos secretos, `SYNC_TOKEN` y `JWT_SECRET`. El nombre del negocio en la PWA sale de la variable de compilación `BUSINESS_NAME` (en Cloudflare: variables de compilación de Workers Builds, en *Settings → Build*; en local: `apps/web/.env.local`, ver `apps/web/.env.example`). Guía: [bllt.juanl.dev/docs/nube](https://bllt.juanl.dev/docs/nube).
+El botón despliega la rama `cloud`, que genera CI en cada push a `main` (`scripts/cloud-branch.mjs`, workflow `cloud-branch.yml`): un workspace recortado con `apps/worker`, `apps/web`, `packages/shared` y `packages/ui`, y `wrangler.jsonc` en la raíz, porque el botón copia un solo directorio al repo nuevo. Incluye la API (Hono + D1), el cron de la tasa y la PWA del teléfono. Pide dos secretos, `SYNC_TOKEN` y `JWT_SECRET`. El nombre del negocio en la PWA sale de la variable de compilación `BUSINESS_NAME` (en Cloudflare: variables de compilación de Workers Builds, en *Settings → Build*; en local: `apps/web/.env.local`, ver `apps/web/.env.example`). Guía: [bllt.juanl.dev/docs/nube](https://bllt.juanl.dev/docs/nube).
 
 ## Monorepo
 

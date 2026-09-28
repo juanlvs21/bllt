@@ -6,5 +6,5 @@ export const SITE = {
   /** Always points to the newest GitHub release. */
   download: 'https://github.com/juanlvs21/bllt/releases/latest',
   deploy:
-    'https://deploy.workers.cloudflare.com/?url=https://github.com/juanlvs21/bllt/tree/main/apps/worker'
+    'https://deploy.workers.cloudflare.com/?url=https://github.com/juanlvs21/bllt/tree/cloud'
 }
