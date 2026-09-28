@@ -44,3 +44,5 @@ publish:
   provider: github
   owner: juanlvs21
   repo: bllt
+  # Published, not a draft: electron-updater only sees published releases.
+  releaseType: release
