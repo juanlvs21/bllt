@@ -17,6 +17,7 @@
       <a class="hover:text-foreground" href="/docs/instalacion">Instalar</a>
       <a class="hover:text-foreground hidden sm:inline" href="/docs/guias/primer-arranque">Guías</a>
       <a class="hover:text-foreground hidden sm:inline" href="/docs/nube">Nube</a>
+      <a class="hover:text-foreground hidden sm:inline" href="/novedades">Novedades</a>
     </nav>
     <div class="ml-auto flex items-center gap-2">
       <Button variant="ghost" size="icon" onclick={toggleMode} aria-label="Cambiar tema"
@@ -41,6 +42,7 @@
         rel="noopener">juanl.dev</a
       ></span
     >
+    <a class="hover:text-foreground" href="/novedades">Novedades</a>
     <a class="hover:text-foreground" href="/licencia">Licencia y marca</a>
     <a class="hover:text-foreground" href={SITE.repo}>GitHub</a>
     <a class="hover:text-foreground" href="mailto:bllt@juanl.dev">bllt@juanl.dev</a>

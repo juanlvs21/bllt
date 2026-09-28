@@ -14,7 +14,8 @@
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "changelog": "node scripts/changelog.mjs"
   },
   "devDependencies": {
     "prettier": "3.9.9",
