@@ -1,5 +1,5 @@
-import { BrowserWindow, shell } from 'electron'
-import { mkdir, writeFile } from 'node:fs/promises'
+import { BrowserWindow, protocol, session } from 'electron'
+import { mkdirSync } from 'node:fs'
 import { join } from 'node:path'
 import {
   formatBs,
@@ -11,6 +11,7 @@ import {
 import blltLogo from '../../../../../../assets/brand/logo-light.svg?raw'
 import type { BusinessDto, SaleDto } from '../../../types/api'
 import { paths } from '../../core/config'
+import { newId } from '../../utils/id'
 import { businessService } from '../business/business.service'
 import { saleService } from './sale.service'
 
@@ -24,26 +25,59 @@ const MARGIN = { top: 1.25, bottom: 0.75, left: 0.6, right: 0.6 }
 /** Printable height of a Letter page between those margins, in CSS pixels. */
 const CONTENT_HEIGHT = (11 - MARGIN.top - MARGIN.bottom) * 96
 
-export const receiptService = {
-  /** Renders the sale receipt to a PDF in Documents/Bllt/Receipts and opens it. */
-  async openPdf(id: string): Promise<string> {
-    const sale = saleService.get(id)
-    const business = businessService.get()
-    const pdf = await renderPdf(sale, business)
+/**
+ * Previews live only in memory, served by a private scheme to Chromium's PDF
+ * viewer: nothing touches the disk until the user saves from the viewer.
+ */
+const SCHEME = 'bllt-receipt'
+const PARTITION = 'receipt-preview'
+const previews = new Map<string, Buffer>()
 
-    const dir = paths.receipts
-    await mkdir(dir, { recursive: true })
-    let file = join(dir, `Venta-${sale.number}.pdf`)
-    try {
-      await writeFile(file, pdf)
-    } catch {
-      // Windows locks a PDF that is still open in a viewer.
-      file = join(dir, `Venta-${sale.number}-${Date.now()}.pdf`)
-      await writeFile(file, pdf)
-    }
-    const error = await shell.openPath(file)
-    if (error) throw new Error(`No se pudo abrir el PDF: ${error}`)
-    return file
+/** Must run before the app is ready. */
+export function registerReceiptScheme(): void {
+  protocol.registerSchemesAsPrivileged([
+    { scheme: SCHEME, privileges: { standard: true, secure: true, supportFetchAPI: true } }
+  ])
+}
+
+/** Serves the previews and points the viewer's save dialog at Documents/Bllt/Receipts. */
+export function registerReceiptPreview(): void {
+  const preview = session.fromPartition(PARTITION)
+  // URL: bllt-receipt://pdf/<token>/Venta-<n>.pdf; the last segment names the saved file.
+  preview.protocol.handle(SCHEME, (request) => {
+    const pdf = previews.get(new URL(request.url).pathname.split('/')[1] ?? '')
+    if (!pdf) return new Response(null, { status: 404 })
+    return new Response(new Uint8Array(pdf), { headers: { 'content-type': 'application/pdf' } })
+  })
+  preview.on('will-download', (_event, item) => {
+    mkdirSync(paths.receipts, { recursive: true })
+    item.setSaveDialogOptions({ defaultPath: join(paths.receipts, item.getFilename()) })
+  })
+}
+
+export const receiptService = {
+  /** Renders the sale receipt and shows it in a viewer window, with save and print. */
+  async preview(id: string): Promise<void> {
+    const sale = saleService.get(id)
+    const pdf = await renderPdf(sale, businessService.get())
+    const token = newId()
+    previews.set(token, pdf)
+
+    const parent = BrowserWindow.getFocusedWindow() ?? undefined
+    const win = new BrowserWindow({
+      width: 900,
+      height: Math.min(1000, parent?.getBounds().height ?? 1000),
+      parent,
+      title: `Venta #${sale.number}`,
+      autoHideMenuBar: true,
+      backgroundColor: '#525659',
+      webPreferences: { partition: PARTITION, sandbox: true, contextIsolation: true, plugins: true }
+    })
+    win.on('closed', () => previews.delete(token))
+    win.webContents.on('will-navigate', (event) => event.preventDefault())
+    win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
+    // Viewer options: no thumbnail sidebar, page fit to the window width.
+    await win.loadURL(`${SCHEME}://pdf/${token}/Venta-${sale.number}.pdf#navpanes=0&view=FitH`)
   }
 }
 

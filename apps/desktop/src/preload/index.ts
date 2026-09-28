@@ -63,7 +63,7 @@ const api: BlltApi = {
     page: call('sales:page'),
     get: call('sales:get'),
     void: call('sales:void'),
-    openPdf: call('sales:openPdf')
+    previewPdf: call('sales:previewPdf')
   },
   dashboard: { summary: call('dashboard:summary') },
   sync: {

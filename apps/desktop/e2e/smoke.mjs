@@ -4,7 +4,7 @@
  * Screenshots land in e2e/screenshots.
  */
 import { _electron as electron } from 'playwright-core'
-import { copyFileSync, existsSync, mkdirSync, mkdtempSync, rmSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -110,18 +110,24 @@ try {
   await page.getByRole('button', { name: 'Confirmar venta' }).click()
   await page.getByRole('dialog').getByText('Venta #1', { exact: true }).waitFor()
   await shot('07-invoice', { toasts: false })
-  // Printing writes the receipt PDF; record the path instead of opening a viewer.
-  await app.evaluate(({ shell }) => {
-    shell.openPath = async (file) => {
-      globalThis.openedPdf = file
-      return ''
-    }
-  })
+  // Printing previews the receipt PDF in its own window, straight from memory.
   await page.getByRole('button', { name: 'Imprimir' }).click()
-  await page.getByRole('button', { name: 'Imprimir' }).and(page.locator(':enabled')).waitFor()
-  const pdf = await app.evaluate(() => globalThis.openedPdf)
-  if (!pdf?.endsWith('Venta-1.pdf') || !existsSync(pdf)) throw new Error(`PDF no generado: ${pdf}`)
-  copyFileSync(pdf, join(shots, '07-receipt.pdf'))
+  let preview
+  for (let i = 0; i < 100 && !preview; i++) {
+    preview = app.windows().find((w) => w.url().startsWith('bllt-receipt:'))
+    if (!preview) await page.waitForTimeout(100)
+  }
+  if (!preview) throw new Error('No se abrió la vista previa del PDF')
+  await preview.waitForLoadState()
+  if (!/^bllt-receipt:\/\/pdf\/.+\/Venta-1\.pdf#/.test(preview.url()))
+    throw new Error(`Vista previa inesperada: ${preview.url()}`)
+  const pdfBytes = await preview.evaluate(
+    async () => (await (await fetch(location.href)).arrayBuffer()).byteLength
+  )
+  if (pdfBytes < 1000) throw new Error(`PDF vacío: ${pdfBytes} bytes`)
+  await preview.waitForTimeout(1500)
+  await preview.screenshot({ path: join(shots, '07-receipt-preview.png') })
+  await preview.close()
   step('comprobante en PDF')
   await page.getByRole('button', { name: 'Listo' }).click()
   step('venta anónima')

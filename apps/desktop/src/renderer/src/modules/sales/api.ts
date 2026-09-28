@@ -7,5 +7,5 @@ export const salesApi = {
   page: (query: SalesPageQueryInput) => unwrap(api.sales.page(query)),
   get: (id: string) => unwrap(api.sales.get(id)),
   void: (id: string) => unwrap(api.sales.void(id)),
-  openPdf: (id: string) => unwrap(api.sales.openPdf(id))
+  previewPdf: (id: string) => unwrap(api.sales.previewPdf(id))
 }

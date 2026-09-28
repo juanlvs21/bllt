@@ -4,9 +4,12 @@ import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { beforeQuit, bootstrap } from './core/bootstrap'
 import { initUpdater } from './libs/updater'
+import { registerReceiptScheme } from './modules/sales/receipt.service'
 
 // Isolated data folder for tests and development.
 if (process.env['BLLT_USER_DATA_DIR']) app.setPath('userData', process.env['BLLT_USER_DATA_DIR'])
+
+registerReceiptScheme()
 
 let mainWindow: BrowserWindow | null = null
 

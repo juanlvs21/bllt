@@ -20,7 +20,7 @@
   async function printPdf() {
     if (!sale) return
     printing = true
-    await attempt(() => salesApi.openPdf(sale.id))
+    await attempt(() => salesApi.previewPdf(sale.id))
     printing = false
   }
 
