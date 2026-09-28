@@ -50,7 +50,10 @@ copyFileSync(
   join(root, 'scripts/cloud/update-cloud.yml'),
   join(out, '.github/workflows/update-cloud.yml')
 )
-const version = execFileSync('git', ['rev-parse', '--short', 'HEAD'], { cwd: root }).toString()
+// The release tag this tree comes from (CI publishes only tags); a commit hash off a tag.
+const version = execFileSync('git', ['describe', '--tags', '--always', '--match', 'v*'], {
+  cwd: root
+}).toString()
 writeFileSync(join(out, '.bllt-version'), version)
 
 writeFileSync(

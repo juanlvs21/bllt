@@ -3,9 +3,14 @@ name: Cloud branch
 # The Deploy to Cloudflare button copies one directory into the user's new repo, so it
 # points at the `cloud` branch: a trimmed workspace (worker, web, shared, ui) generated
 # by scripts/cloud-branch.mjs with wrangler.jsonc at its root.
+#
+# What businesses run only comes from release tags, like the desktop app: a push to main just
+# checks that the tree builds; the latest stable tag (vX.Y.Z) publishes it. Running it by hand
+# republishes the latest tag.
 on:
   push:
     branches: [main]
+    tags: ['v*']
     paths:
       - apps/worker/**
       - apps/web/**
@@ -22,7 +27,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: cloud-branch
+  group: cloud-branch-${{ github.ref_type }}
   cancel-in-progress: true
 
 jobs:
@@ -30,6 +35,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Pick the version
+        id: version
+        run: |
+          latest=$(git tag --list 'v*' --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -1 || true)
+          case "$GITHUB_EVENT_NAME/$GITHUB_REF_TYPE" in
+            push/branch) echo "publish=false" >> "$GITHUB_OUTPUT"; echo "ref=$GITHUB_SHA" >> "$GITHUB_OUTPUT" ;;
+            push/tag)
+              # An older or pre-release tag (a hotfix line, v1.2.0-beta) doesn't replace the latest.
+              if [ "$GITHUB_REF_NAME" != "$latest" ]; then
+                echo "::notice::$GITHUB_REF_NAME no es el último tag estable ($latest); no se publica."
+                echo "publish=false" >> "$GITHUB_OUTPUT"
+              else
+                echo "publish=true" >> "$GITHUB_OUTPUT"
+              fi
+              echo "ref=$GITHUB_REF_NAME" >> "$GITHUB_OUTPUT" ;;
+            *)
+              [ -n "$latest" ] || { echo '::error::No hay ningún tag vX.Y.Z'; exit 1; }
+              echo "publish=true" >> "$GITHUB_OUTPUT"; echo "ref=$latest" >> "$GITHUB_OUTPUT" ;;
+          esac
+      - name: Check out the version
+        run: git checkout --quiet "${{ steps.version.outputs.ref }}"
       - uses: pnpm/action-setup@v6.1.0
       - uses: actions/setup-node@v7.0.0
         with:
@@ -44,7 +72,9 @@ jobs:
           pnpm build
           pnpm exec wrangler deploy --dry-run
       - name: Commit to cloud
+        if: steps.version.outputs.publish == 'true'
         run: |
+          version=$(cat "$RUNNER_TEMP/cloud/.bllt-version")
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           if git fetch origin cloud; then
@@ -57,5 +87,5 @@ jobs:
           cp -a "$RUNNER_TEMP/cloud/." .
           git add -A
           git diff --cached --quiet && exit 0
-          git commit -m "Nube desde ${GITHUB_SHA::7}"
+          git commit -m "Nube $version"
           git push origin HEAD:refs/heads/cloud

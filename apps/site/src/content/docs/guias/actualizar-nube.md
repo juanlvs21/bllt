@@ -6,6 +6,8 @@ order: 18
 
 El botón _Deploy to Cloudflare_ copió Bllt en **tu** cuenta de GitHub. Esa copia no cambia sola cuando sale una versión nueva: la actualizas tú, con un botón.
 
+La nube sigue las mismas versiones que la app de la PC: solo se actualiza a versiones publicadas, nunca a cambios a medio terminar.
+
 Si tu Worker está en una versión anterior, Bllt en la PC lo avisa en el inicio: “Tu Worker es de una versión anterior y algunos cambios esperan a que lo actualices”. Mientras tanto la PC sigue sincronizando todo lo que el Worker entiende; lo demás espera en la PC y sube al actualizar.
 
 ## Actualizar
