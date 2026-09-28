@@ -9,7 +9,7 @@
     type WebSummary,
     type WebUser
   } from '@bllt/shared'
-  import { Badge, Button, Card, Logo, StatCard } from '@bllt/ui'
+  import { AlertDialog, Badge, Button, Card, Logo, StatCard } from '@bllt/ui'
   import LogOutIcon from '@lucide/svelte/icons/log-out'
   import RefreshIcon from '@lucide/svelte/icons/refresh-cw'
   import WifiOffIcon from '@lucide/svelte/icons/wifi-off'
@@ -27,6 +27,7 @@
   let data = $state<WebSummary | null>(summaryCache.read())
   let offline = $state(false)
   let loading = $state(false)
+  let confirmLogout = $state(false)
 
   async function load() {
     loading = true
@@ -62,8 +63,9 @@
     <Button variant="ghost" size="icon" disabled={loading} onclick={load} aria-label="Actualizar">
       <RefreshIcon class={loading ? 'animate-spin' : ''} />
     </Button>
-    <Button variant="ghost" size="icon" onclick={onLogout} aria-label="Salir"><LogOutIcon /></Button
-    >
+    <Button variant="ghost" size="icon" onclick={() => (confirmLogout = true)} aria-label="Salir">
+      <LogOutIcon />
+    </Button>
   </div>
 </header>
 
@@ -117,12 +119,19 @@
     />
   </div>
 
-  {#if data?.candidate}
+  {#if data?.phoneSuggestion}
+    {@const suggestion = data.phoneSuggestion}
     <p class="text-muted-foreground mt-3 text-xs">
-      Tasa sugerida pendiente en la PC: <strong class="tabular"
-        >{formatRate(data.candidate.bsPerUsd)}</strong
-      >
-      ({data.candidate.source === 'WEB' ? 'desde el teléfono' : 'automática'})
+      Tasa sugerida desde el teléfono (<span class="tabular"
+        >{formatBusinessTime(suggestion.fetchedAt)}</span
+      >): <strong class="tabular">{formatRate(suggestion.bsPerUsd)}</strong> ·
+      {#if suggestion.decision === 'ACCEPTED'}
+        <span class="text-primary font-medium">aceptada en la PC</span>
+      {:else if suggestion.decision === 'REJECTED'}
+        <span class="text-destructive font-medium">rechazada en la PC</span>
+      {:else}
+        pendiente en la PC
+      {/if}
     </p>
   {/if}
 
@@ -158,3 +167,18 @@
     </Card.Content>
   </Card.Root>
 {/if}
+
+<AlertDialog.Root bind:open={confirmLogout}>
+  <AlertDialog.Content>
+    <AlertDialog.Header>
+      <AlertDialog.Title>¿Cerrar sesión?</AlertDialog.Title>
+      <AlertDialog.Description>
+        Tendrás que escribir tu usuario y contraseña para volver a entrar.
+      </AlertDialog.Description>
+    </AlertDialog.Header>
+    <AlertDialog.Footer>
+      <AlertDialog.Cancel>Cancelar</AlertDialog.Cancel>
+      <AlertDialog.Action onclick={onLogout}>Cerrar sesión</AlertDialog.Action>
+    </AlertDialog.Footer>
+  </AlertDialog.Content>
+</AlertDialog.Root>

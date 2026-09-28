@@ -43,6 +43,19 @@ export function businessMonthRange(date: string): { start: string; end: string }
   }
 }
 
+/** Hour (UTC-4) at which phone rate suggestions expire. */
+export const PHONE_SUGGESTION_EXPIRY_HOUR = 1
+
+/**
+ * UTC ISO instant of the latest 1:00 am (UTC-4) at or before `at`. Phone
+ * suggestions made before it have expired.
+ */
+export function phoneSuggestionCutoff(at: Date = new Date()): string {
+  const shift = PHONE_SUGGESTION_EXPIRY_HOUR * 60 * 60 * 1000
+  const date = businessDate(new Date(at.getTime() - shift))
+  return new Date(businessDateStart(date).getTime() + shift).toISOString()
+}
+
 export function nowIso(): string {
   return new Date().toISOString()
 }

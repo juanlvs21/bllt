@@ -11,5 +11,5 @@ export const syncRoutes = new Hono<AppContext>()
     const body = pushRequest.parse(await c.req.json())
     return c.json(await syncService.push(c.env.DB, body))
   })
-  // Latest candidate of the business day. Never confirms anything.
-  .get('/rate', async (c) => c.json({ candidate: await rateService.latestCandidate(c.env.DB) }))
+  // Rate candidates for the desktop. Never confirms anything.
+  .get('/rate', async (c) => c.json(await rateService.candidates(c.env.DB)))

@@ -59,8 +59,8 @@
     <Dialog.Header>
       <Dialog.Title>La tasa cambió</Dialog.Title>
       <Dialog.Description>
-        Hay una tasa más reciente que la que guardaste hoy. Las ventas ya hechas conservan su
-        propia tasa.
+        Hay una tasa más reciente que la que guardaste hoy. Las ventas ya hechas conservan su propia
+        tasa.
       </Dialog.Description>
     </Dialog.Header>
     {#if current && shown}
@@ -91,7 +91,9 @@
               {:else}
                 <TrendingDownIcon class="size-4" aria-label="Bajó" />
               {/if}
-              <span class="tabular">{percent.toLocaleString('es-VE', { maximumFractionDigits: 2 })}%</span>
+              <span class="tabular"
+                >{percent.toLocaleString('es-VE', { maximumFractionDigits: 2 })}%</span
+              >
             </span>
           </div>
           <p class="tabular mt-1 text-xl font-bold">{formatRate(shown.bsPerUsd)} Bs</p>

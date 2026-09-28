@@ -91,7 +91,7 @@ try {
   await page.getByRole('checkbox').click()
   await page.getByRole('button', { name: 'Entrar a Bllt' }).click()
   await page.getByText('Confirma la tasa de hoy').waitFor()
-  await page.getByText('Tasa sugerida').waitFor()
+  await page.getByRole('button', { name: /^Internet.*Bs/ }).waitFor()
   await shot(page, '03-rate')
   await page.getByRole('button', { name: 'Confirmar tasa' }).click()
   await page.getByRole('heading', { name: 'Inicio' }).waitFor()

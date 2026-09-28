@@ -7,7 +7,7 @@ import {
   SYNC_BATCH_SIZE,
   type OutboxEntity,
   type OutboxMessage,
-  type RateCandidateDto
+  type RateResponse
 } from '@bllt/shared'
 import { net } from 'electron'
 import type { CloudSettings, SyncStatus } from '../../../types/api'
@@ -19,7 +19,7 @@ import { SettingKey, settingsService } from '../settings/settings.service'
 import { EventChannel } from '../../../types/api'
 import { outboxRepository } from './outbox.repository'
 
-type CandidateListener = (candidate: RateCandidateDto) => void
+type CandidateListener = (candidates: RateResponse) => void
 
 const state = { running: false, lastError: null as string | null }
 const candidateListeners: CandidateListener[] = []
@@ -105,17 +105,17 @@ export const syncService = {
     }
   },
 
-  onCandidate(listener: CandidateListener): void {
+  onCandidates(listener: CandidateListener): void {
     candidateListeners.push(listener)
   },
 
-  /** Latest rate candidate from the Worker; never applied automatically. */
-  async fetchCandidate(): Promise<RateCandidateDto | null> {
+  /** Rate candidates from the Worker (cron and phone); never applied automatically. */
+  async fetchCandidates(): Promise<RateResponse> {
     const res = await request('/api/sync/rate')
-    return rateResponse.parse(await res.json()).candidate
+    return rateResponse.parse(await res.json())
   },
 
-  /** One cycle: push the outbox, then ask for a rate candidate. */
+  /** One cycle: push the outbox (including rate decisions), then ask for rate candidates. */
   async runCycle(): Promise<SyncStatus> {
     if (state.running || !this.isConfigured()) return this.status()
     state.running = true
@@ -123,8 +123,8 @@ export const syncService = {
     try {
       await pushPending()
       settingsService.set(SettingKey.LAST_SYNC_AT, nowIso())
-      const candidate = await this.fetchCandidate()
-      if (candidate) candidateListeners.forEach((listener) => listener(candidate))
+      const candidates = await this.fetchCandidates()
+      candidateListeners.forEach((listener) => listener(candidates))
       state.lastError = null
     } catch (error) {
       state.lastError = error instanceof DomainError ? error.message : 'Sin conexión con el Worker'
@@ -169,7 +169,7 @@ export const syncService = {
 
   async test(): Promise<{ ok: boolean; message: string }> {
     try {
-      await this.fetchCandidate()
+      await this.fetchCandidates()
       return { ok: true, message: 'Conexión correcta con el Worker' }
     } catch (error) {
       return {

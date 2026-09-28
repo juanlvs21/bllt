@@ -50,7 +50,7 @@
       else phase = 'login'
     })
 
-    const offSuggestion = window.api.events.onRateSuggestion((s) => rateStore.pushSuggestion(s))
+    const offRate = window.api.events.onRateUpdate((today) => rateStore.set(today))
     // First open of a new business day asks for the rate again.
     const dayCheck = setInterval(async () => {
       if (phase === 'app' && rateStore.stale) {
@@ -58,12 +58,12 @@
         if (!rateStore.confirmed) phase = 'rate'
       }
     }, 60_000)
-    // Without the cloud nothing pushes suggestions, so look for a newer rate every hour.
+    // Look for a newer rate on the internet every hour, with or without the cloud.
     const rateCheck = setInterval(() => {
       if (phase === 'app') void rateStore.check()
     }, 3_600_000)
     return () => {
-      offSuggestion()
+      offRate()
       clearInterval(dayCheck)
       clearInterval(rateCheck)
     }

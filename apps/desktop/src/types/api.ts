@@ -89,6 +89,8 @@ export interface ExchangeRateDto {
 }
 
 export interface RateSuggestion {
+  /** Key used to dismiss it: the candidate id, or source, day and value for a public API quote. */
+  id: string
   /** Candidate id from the Worker, or null for a public API quote. */
   candidateId: string | null
   bsPerUsd: number
@@ -96,13 +98,17 @@ export interface RateSuggestion {
   valueDate: string | null
   fetchedAt: string
   provider: string
+  /** The user already discarded this exact rate. */
+  dismissed: boolean
 }
 
 export interface TodayRate {
   businessDate: string
   confirmed: ExchangeRateDto | null
-  /** Pending suggestion that differs from the confirmed rate, if any. */
-  suggestion: RateSuggestion | null
+  /** Latest rate found on the internet today (public API from this PC, or the Worker cron). */
+  internet: RateSuggestion | null
+  /** Rate suggested from the phone, until the PC accepts or rejects it or it expires at 1:00 am. */
+  phone: RateSuggestion | null
 }
 
 export interface SaleItemDto {
@@ -230,9 +236,10 @@ export interface BlltApi {
   }
   rates: {
     today(): R<TodayRate>
-    fetchSuggestion(): R<RateSuggestion | null>
+    /** Looks the rate up on the internet now and refreshes the phone suggestion. */
+    search(): R<TodayRate>
     confirm(input: RateConfirmInput): R<ExchangeRateDto>
-    dismiss(candidateId: string): R<void>
+    dismiss(id: string): R<void>
     history(): R<ExchangeRateDto[]>
   }
   sales: {
@@ -269,7 +276,7 @@ export interface BlltApi {
   events: {
     onExportProgress(cb: (p: ExportProgress) => void): () => void
     onSyncStatus(cb: (s: SyncStatus) => void): () => void
-    onRateSuggestion(cb: (s: RateSuggestion) => void): () => void
+    onRateUpdate(cb: (t: TodayRate) => void): () => void
     onSessionEnded(cb: () => void): () => void
   }
 }
@@ -278,6 +285,6 @@ export interface BlltApi {
 export const EventChannel = {
   EXPORT_PROGRESS: 'event:export-progress',
   SYNC_STATUS: 'event:sync-status',
-  RATE_SUGGESTION: 'event:rate-suggestion',
+  RATE_UPDATE: 'event:rate-update',
   SESSION_ENDED: 'event:session-ended'
 } as const

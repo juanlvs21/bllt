@@ -7,7 +7,7 @@
   import { rateStore } from '../stores/rate.svelte'
 
   let busy = $state(false)
-  const suggestion = $derived(rateStore.suggestion)
+  const suggestion = $derived(rateStore.change)
   const current = $derived(rateStore.confirmed)
 
   async function accept() {
@@ -27,15 +27,14 @@
   }
 
   async function dismiss() {
-    if (!suggestion?.candidateId) return
+    if (!suggestion) return
     busy = true
-    await attempt(() => ratesApi.dismiss(suggestion.candidateId!))
-    await rateStore.refresh()
+    await attempt(() => rateStore.dismiss(suggestion))
     busy = false
   }
 </script>
 
-{#if suggestion && current && suggestion.candidateId}
+{#if suggestion && current}
   <Alert.Root class="border-gold/50 bg-gold-soft">
     <BellIcon class="text-gold" />
     <Alert.Title>Nueva tasa sugerida</Alert.Title>

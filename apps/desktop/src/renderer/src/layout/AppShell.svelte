@@ -17,6 +17,7 @@
   import { formatRate } from '../lib/format'
   import { businessStore } from '../modules/business/stores/business.svelte'
   import { rateStore } from '../modules/rates/stores/rate.svelte'
+  import SyncButton from './SyncButton.svelte'
 
   let {
     children,
@@ -101,6 +102,7 @@
 
   <div class="flex min-w-0 flex-1 flex-col">
     <header class="bg-background flex h-16 shrink-0 items-center justify-end gap-3 px-8">
+      <SyncButton />
       <button
         class={cn(
           'bg-card hover:ring-primary/50 relative flex items-center gap-2 rounded-full px-4 py-1.5 text-sm ring-1 transition',

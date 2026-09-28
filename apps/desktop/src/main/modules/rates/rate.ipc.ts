@@ -5,7 +5,7 @@ import { rateService } from './rate.service'
 
 export function registerRateIpc(): void {
   handle('rates:today', {}, () => rateService.today())
-  handle('rates:fetchSuggestion', {}, () => rateService.fetchSuggestion())
+  handle('rates:search', {}, () => rateService.search())
   handle('rates:confirm', { input: rateConfirmInput }, (input, user) =>
     rateService.confirm(user, input)
   )

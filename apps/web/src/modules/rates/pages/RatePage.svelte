@@ -26,8 +26,8 @@
 
 <h1 class="text-primary mt-4 text-xl font-semibold uppercase">Sugerir tasa</h1>
 <p class="text-muted-foreground mt-1 text-sm">
-  La tasa no cambia sola: aparece en la PC como sugerencia y alguien allá la acepta o la descarta.
-  Las ventas ya hechas conservan su tasa.
+  La tasa no cambia sola: aparece en la PC como sugerencia y alguien allá la acepta o la rechaza. Si
+  nadie la usa, vence a la 1:00 am. Las ventas ya hechas conservan su tasa.
 </p>
 
 <Card.Root class="mt-6">

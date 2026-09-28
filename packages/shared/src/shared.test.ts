@@ -10,6 +10,7 @@ import {
   LOGO_MAX_LENGTH,
   parseRate,
   parseUsdToCents,
+  phoneSuggestionCutoff,
   rateToInput,
   summarizeProfit,
   usdCentsToBsCents,
@@ -55,6 +56,16 @@ describe('time', () => {
       start: '2026-12-01T04:00:00.000Z',
       end: '2027-01-01T04:00:00.000Z'
     })
+  })
+
+  it('expires phone suggestions at 1:00 am Venezuela time', () => {
+    // 12:30 am on the 28th (UTC-4) still sees the suggestion made at 11 pm on the 27th.
+    expect(phoneSuggestionCutoff(new Date('2026-09-28T04:30:00Z'))).toBe(
+      '2026-09-27T05:00:00.000Z'
+    )
+    expect(phoneSuggestionCutoff(new Date('2026-09-28T05:00:00Z'))).toBe(
+      '2026-09-28T05:00:00.000Z'
+    )
   })
 
   it('formats Venezuela time', () => {

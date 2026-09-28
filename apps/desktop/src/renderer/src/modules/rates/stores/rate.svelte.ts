@@ -2,21 +2,22 @@ import { businessDate } from '@bllt/shared'
 import type { RateSuggestion, TodayRate } from '../../../../../types/api'
 import { ratesApi } from '../api'
 
-/** Today's confirmed rate and any pending suggestion, shared across screens. */
+/** Today's confirmed rate and the internet and phone suggestions, shared across screens. */
 class RateStore {
   today = $state<TodayRate | null>(null)
   loading = $state(false)
 
-  /** Public API quotes have no candidate id to dismiss on disk; this hides them for the session. */
-  #ignored = $state<string[]>([])
-
   confirmed = $derived(this.today?.confirmed ?? null)
-  suggestion = $derived.by(() => {
-    const s = this.today?.suggestion ?? null
-    return s && !this.#ignored.includes(ignoreKey(s)) ? s : null
+  internet = $derived(this.today?.internet ?? null)
+  phone = $derived(this.today?.phone ?? null)
+  /** A rate other than the one saved today, not yet discarded. The phone wins: someone chose it. */
+  change = $derived.by(() => {
+    const confirmed = this.confirmed
+    if (!confirmed) return null
+    const differs = (s: RateSuggestion | null) =>
+      s && !s.dismissed && s.bsPerUsd !== confirmed.bsPerUsd ? s : null
+    return differs(this.phone) ?? differs(this.internet)
   })
-  /** A newer rate than the one saved today, from the Worker or a public API. */
-  change = $derived(this.confirmed && this.suggestion ? this.suggestion : null)
   /** True when the business day rolled over since the last load. */
   get stale() {
     return !!this.today && this.today.businessDate !== businessDate()
@@ -31,27 +32,26 @@ class RateStore {
     }
   }
 
-  pushSuggestion(suggestion: RateSuggestion) {
-    if (this.today) this.today = { ...this.today, suggestion }
+  set(today: TodayRate) {
+    this.today = today
+  }
+
+  /** Looks the rate up on the internet now. Throws when offline, like any API call. */
+  async search() {
+    this.today = await ratesApi.search()
+    return this.today
   }
 
   /** Looks for a newer rate in the background; errors (no internet) are ignored. */
   async check() {
     if (!this.confirmed) return
-    await ratesApi.fetchSuggestion().catch(() => null)
-    await this.refresh()
+    await this.search().catch(() => null)
   }
 
   async dismiss(suggestion: RateSuggestion) {
-    if (suggestion.candidateId) {
-      await ratesApi.dismiss(suggestion.candidateId)
-      await this.refresh()
-    } else {
-      this.#ignored = [...this.#ignored, ignoreKey(suggestion)]
-    }
+    await ratesApi.dismiss(suggestion.id)
+    await this.refresh()
   }
 }
-
-const ignoreKey = (s: RateSuggestion) => `${s.source}:${s.bsPerUsd}`
 
 export const rateStore = new RateStore()

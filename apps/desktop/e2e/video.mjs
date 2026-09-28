@@ -186,7 +186,7 @@ try {
   await click(page, page.getByRole('button', { name: 'Entrar' }))
   step('inicio de sesión')
 
-  await page.getByText('Tasa sugerida').waitFor()
+  await page.getByRole('button', { name: /^Internet.*Bs/ }).waitFor()
   await showCursor(page)
   await pause(page, 1800)
   await click(page, page.getByRole('button', { name: 'Confirmar tasa' }))

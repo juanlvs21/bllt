@@ -1,6 +1,6 @@
 /** Sync contract between the desktop outbox and the Worker. Validated on both sides. */
 import { z } from 'zod'
-import { OUTBOX_ENTITIES, RATE_SOURCES, ROLES, SALE_STATUSES } from './enums'
+import { OUTBOX_ENTITIES, RATE_DECISIONS, RATE_SOURCES, ROLES, SALE_STATUSES } from './enums'
 
 export const SYNC_BATCH_SIZE = 100
 
@@ -76,12 +76,19 @@ export const exchangeRatePayload = z.object({
   confirmedAt: z.string()
 })
 
+export const rateDecisionPayload = z.object({
+  candidateId: z.string(),
+  decision: z.enum(RATE_DECISIONS),
+  decidedAt: z.string()
+})
+
 export const outboxMessage = z.discriminatedUnion('entity', [
   z.object({ id: z.string(), entity: z.literal('USER'), payload: userPayload }),
   z.object({ id: z.string(), entity: z.literal('PRODUCT'), payload: productPayload }),
   z.object({ id: z.string(), entity: z.literal('CUSTOMER'), payload: customerPayload }),
   z.object({ id: z.string(), entity: z.literal('SALE'), payload: salePayload }),
-  z.object({ id: z.string(), entity: z.literal('EXCHANGE_RATE'), payload: exchangeRatePayload })
+  z.object({ id: z.string(), entity: z.literal('EXCHANGE_RATE'), payload: exchangeRatePayload }),
+  z.object({ id: z.string(), entity: z.literal('RATE_DECISION'), payload: rateDecisionPayload })
 ])
 export type OutboxMessage = z.infer<typeof outboxMessage>
 
@@ -103,7 +110,11 @@ export const rateCandidateDto = z.object({
 })
 export type RateCandidateDto = z.infer<typeof rateCandidateDto>
 
-export const rateResponse = z.object({ candidate: rateCandidateDto.nullable() })
+/** Latest cron rate of the day, and the phone suggestion still waiting for the desktop. */
+export const rateResponse = z.object({
+  internet: rateCandidateDto.nullable(),
+  phone: rateCandidateDto.nullable()
+})
 export type RateResponse = z.infer<typeof rateResponse>
 
 export type OutboxEntityName = (typeof OUTBOX_ENTITIES)[number]

@@ -14,4 +14,4 @@ Necesitas haber configurado la [nube](/docs/nube).
 
 Verás las ganancias del día y del mes, la tasa confirmada, las ventas de hoy y cuándo sincronizó la PC por última vez. Sin conexión se muestra el último resumen con la hora (“actualizado a las 3:40 pm”).
 
-En **Sugerir tasa** puedes proponer una tasa; aparece en la PC como aviso para aceptarla o descartarla.
+En **Sugerir tasa** puedes proponer una tasa; aparece en la PC junto a la de internet para aceptarla o rechazarla. En el **Resumen** ves si la PC la aceptó o la rechazó. Si nadie la usa, vence a la 1:00 am.

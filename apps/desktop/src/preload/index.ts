@@ -52,7 +52,7 @@ const api: BlltApi = {
   },
   rates: {
     today: call('rates:today'),
-    fetchSuggestion: call('rates:fetchSuggestion'),
+    search: call('rates:search'),
     confirm: call('rates:confirm'),
     dismiss: call('rates:dismiss'),
     history: call('rates:history')
@@ -86,7 +86,7 @@ const api: BlltApi = {
   events: {
     onExportProgress: (cb) => subscribe(EventChannel.EXPORT_PROGRESS, cb),
     onSyncStatus: (cb) => subscribe(EventChannel.SYNC_STATUS, cb),
-    onRateSuggestion: (cb) => subscribe(EventChannel.RATE_SUGGESTION, cb),
+    onRateUpdate: (cb) => subscribe(EventChannel.RATE_UPDATE, cb),
     onSessionEnded: (cb) => subscribe(EventChannel.SESSION_ENDED, cb)
   }
 }
