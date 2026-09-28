@@ -33,7 +33,8 @@ export const OutboxEntity = {
   PRODUCT: 'PRODUCT',
   CUSTOMER: 'CUSTOMER',
   SALE: 'SALE',
-  EXCHANGE_RATE: 'EXCHANGE_RATE'
+  EXCHANGE_RATE: 'EXCHANGE_RATE',
+  RATE_DECISION: 'RATE_DECISION'
 } as const
 export type OutboxEntity = (typeof OutboxEntity)[keyof typeof OutboxEntity]
 export const OUTBOX_ENTITIES = [
@@ -41,8 +42,17 @@ export const OUTBOX_ENTITIES = [
   OutboxEntity.PRODUCT,
   OutboxEntity.CUSTOMER,
   OutboxEntity.SALE,
-  OutboxEntity.EXCHANGE_RATE
+  OutboxEntity.EXCHANGE_RATE,
+  OutboxEntity.RATE_DECISION
 ] as const
+
+/** What the desktop did with a Worker rate candidate. */
+export const RateDecision = {
+  ACCEPTED: 'ACCEPTED',
+  REJECTED: 'REJECTED'
+} as const
+export type RateDecision = (typeof RateDecision)[keyof typeof RateDecision]
+export const RATE_DECISIONS = [RateDecision.ACCEPTED, RateDecision.REJECTED] as const
 
 export const ExportFormat = {
   XLSX: 'XLSX',

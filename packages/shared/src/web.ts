@@ -1,5 +1,5 @@
 /** Shapes the Worker returns to the web app (PWA). */
-import type { Role, SaleStatus } from './enums'
+import type { RateDecision, Role, SaleStatus } from './enums'
 import type { DashboardSummary } from './profit'
 
 export interface WebUser {
@@ -22,7 +22,7 @@ export interface WebSale {
 export interface WebSummary {
   summary: DashboardSummary
   sales: WebSale[]
-  /** Latest pending suggestion (cron or phone) for today, if any. */
-  candidate: { bsPerUsd: number; source: string; fetchedAt: string } | null
+  /** Latest phone suggestion not yet expired, with what the PC did with it (null = pending). */
+  phoneSuggestion: { bsPerUsd: number; fetchedAt: string; decision: RateDecision | null } | null
   generatedAt: string
 }

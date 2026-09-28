@@ -1,6 +1,6 @@
 /** D1-only tables on top of the shared schema. */
 import { index, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
-import { RATE_SOURCES } from '../enums'
+import { RATE_DECISIONS, RATE_SOURCES } from '../enums'
 
 export * from './index'
 
@@ -16,7 +16,10 @@ export const rateCandidates = sqliteTable(
     /** Value date published by the provider, informational only. */
     valueDate: text('value_date'),
     fetchedAt: text('fetched_at').notNull(),
-    createdBy: text('created_by')
+    createdBy: text('created_by'),
+    /** Set by the desktop through the outbox; null while pending. */
+    decision: text('decision', { enum: RATE_DECISIONS }),
+    decidedAt: text('decided_at')
   },
   (t) => [index('rate_candidates_fetched_idx').on(t.fetchedAt)]
 )

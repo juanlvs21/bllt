@@ -1,3 +1,4 @@
+import { eq } from 'drizzle-orm'
 import type { OutboxMessage } from '@bllt/shared'
 import type { BatchItem } from 'drizzle-orm/batch'
 import { createDb, schema } from '../../core/db'
@@ -45,6 +46,15 @@ export function statementsFor(d1: D1Database, message: OutboxMessage): Statement
           .insert(schema.exchangeRates)
           .values(message.payload)
           .onConflictDoUpdate({ target: schema.exchangeRates.date, set: rest })
+      ]
+    }
+    case 'RATE_DECISION': {
+      const { candidateId, decision, decidedAt } = message.payload
+      return [
+        db
+          .update(schema.rateCandidates)
+          .set({ decision, decidedAt })
+          .where(eq(schema.rateCandidates.id, candidateId))
       ]
     }
     case 'SALE': {

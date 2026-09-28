@@ -24,13 +24,13 @@ export const summaryService = {
   async get(d1: D1Database): Promise<WebSummary> {
     const date = businessDate()
     const day = businessDayRange(date)
-    const [today, month, rate, sales, lastSyncAt, candidate] = await Promise.all([
+    const [today, month, rate, sales, lastSyncAt, phone] = await Promise.all([
       period(d1, day),
       period(d1, businessMonthRange(date)),
       rateRepository.confirmed(d1, date),
       summaryRepository.salesBetween(d1, day.start, day.end),
       summaryRepository.meta(d1, LAST_SYNC_KEY),
-      rateService.latestCandidate(d1)
+      rateService.latestPhone(d1)
     ])
     return {
       summary: {
@@ -43,14 +43,9 @@ export const summaryService = {
         lastSyncAt
       },
       sales,
-      candidate:
-        candidate && candidate.bsPerUsd !== rate?.bsPerUsd
-          ? {
-              bsPerUsd: candidate.bsPerUsd,
-              source: candidate.source,
-              fetchedAt: candidate.fetchedAt
-            }
-          : null,
+      phoneSuggestion: phone
+        ? { bsPerUsd: phone.bsPerUsd, fetchedAt: phone.fetchedAt, decision: phone.decision }
+        : null,
       generatedAt: nowIso()
     }
   }
