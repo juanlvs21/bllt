@@ -15,15 +15,15 @@
   },
   "dependencies": {
     "@bllt/shared": "workspace:*",
-    "drizzle-orm": "^0.45.3",
-    "hono": "^4.13.9",
-    "zod": "^4.6.5"
+    "drizzle-orm": "0.45.3",
+    "hono": "4.13.9",
+    "zod": "4.6.5"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^5.20260926.1",
-    "drizzle-kit": "^0.31.11",
-    "typescript": "^5.9.3",
-    "vitest": "^3.2.4",
-    "wrangler": "^4.141.0"
+    "@cloudflare/workers-types": "5.20260927.1",
+    "drizzle-kit": "0.31.11",
+    "typescript": "6.0.3",
+    "vitest": "5.0.2",
+    "wrangler": "4.141.0"
   }
 }
