@@ -1,0 +1,7 @@
+@import '@bllt/ui/styles.css';
+
+@source './';
+
+body {
+  min-height: 100dvh;
+}

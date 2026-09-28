@@ -1,0 +1,109 @@
+/** Sync contract between the desktop outbox and the Worker. Validated on both sides. */
+import { z } from 'zod'
+import { OUTBOX_ENTITIES, RATE_SOURCES, ROLES, SALE_STATUSES } from './enums'
+
+export const SYNC_BATCH_SIZE = 100
+
+/**
+ * D1 caps statements per invocation on the free plan, so the Worker accepts
+ * a prefix of each batch that fits this budget and the desktop sends the rest
+ * in the next request.
+ */
+export const SYNC_STATEMENT_BUDGET = 40
+
+export const userPayload = z.object({
+  id: z.string(),
+  username: z.string(),
+  passwordHash: z.string(),
+  salt: z.string(),
+  iterations: z.number().int(),
+  role: z.enum(ROLES),
+  active: z.boolean(),
+  createdAt: z.string(),
+  updatedAt: z.string()
+})
+
+export const productPayload = z.object({
+  id: z.string(),
+  code: z.string(),
+  name: z.string(),
+  stock: z.number().int(),
+  costCents: z.number().int(),
+  priceCents: z.number().int(),
+  active: z.boolean(),
+  updatedAt: z.string()
+})
+
+export const customerPayload = z.object({
+  id: z.string(),
+  name: z.string(),
+  document: z.string().nullable(),
+  phone: z.string().nullable(),
+  createdAt: z.string(),
+  updatedAt: z.string()
+})
+
+export const saleItemPayload = z.object({
+  id: z.string(),
+  saleId: z.string(),
+  productId: z.string(),
+  productCode: z.string(),
+  productName: z.string(),
+  qty: z.number().int(),
+  priceCents: z.number().int(),
+  costCents: z.number().int()
+})
+
+export const salePayload = z.object({
+  id: z.string(),
+  number: z.number().int(),
+  customerId: z.string().nullable(),
+  userId: z.string(),
+  rate: z.number().int(),
+  totalCents: z.number().int(),
+  status: z.enum(SALE_STATUSES),
+  createdAt: z.string(),
+  voidedAt: z.string().nullable(),
+  voidedBy: z.string().nullable(),
+  items: z.array(saleItemPayload)
+})
+
+export const exchangeRatePayload = z.object({
+  date: z.string(),
+  bsPerUsd: z.number().int(),
+  source: z.enum(RATE_SOURCES),
+  confirmedBy: z.string(),
+  confirmedAt: z.string()
+})
+
+export const outboxMessage = z.discriminatedUnion('entity', [
+  z.object({ id: z.string(), entity: z.literal('USER'), payload: userPayload }),
+  z.object({ id: z.string(), entity: z.literal('PRODUCT'), payload: productPayload }),
+  z.object({ id: z.string(), entity: z.literal('CUSTOMER'), payload: customerPayload }),
+  z.object({ id: z.string(), entity: z.literal('SALE'), payload: salePayload }),
+  z.object({ id: z.string(), entity: z.literal('EXCHANGE_RATE'), payload: exchangeRatePayload })
+])
+export type OutboxMessage = z.infer<typeof outboxMessage>
+
+export const pushRequest = z.object({
+  messages: z.array(outboxMessage).min(1).max(SYNC_BATCH_SIZE)
+})
+export type PushRequest = z.infer<typeof pushRequest>
+
+export const pushResponse = z.object({ accepted: z.array(z.string()) })
+export type PushResponse = z.infer<typeof pushResponse>
+
+export const rateCandidateDto = z.object({
+  id: z.string(),
+  date: z.string(),
+  bsPerUsd: z.number().int(),
+  source: z.enum(RATE_SOURCES),
+  valueDate: z.string().nullable(),
+  fetchedAt: z.string()
+})
+export type RateCandidateDto = z.infer<typeof rateCandidateDto>
+
+export const rateResponse = z.object({ candidate: rateCandidateDto.nullable() })
+export type RateResponse = z.infer<typeof rateResponse>
+
+export type OutboxEntityName = (typeof OUTBOX_ENTITIES)[number]

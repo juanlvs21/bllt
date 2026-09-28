@@ -1,0 +1,27 @@
+{
+  "name": "bllt-cloud",
+  "private": true,
+  "license": "Apache-2.0",
+  "packageManager": "pnpm@11.20.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "pnpm --filter @bllt/web build && node apps/worker/scripts/copy-web.mjs",
+    "deploy": "wrangler d1 migrations apply DB --remote && wrangler deploy",
+    "dev": "pnpm build && wrangler d1 migrations apply DB --local && wrangler dev"
+  },
+  "devDependencies": {
+    "wrangler": "4.141.0"
+  },
+  "cloudflare": {
+    "bindings": {
+      "SYNC_TOKEN": {
+        "description": "Token que usa la app de escritorio para sincronizar. Pon un valor largo y aleatorio."
+      },
+      "JWT_SECRET": {
+        "description": "Firma las sesiones del teléfono. Otro valor largo y aleatorio; cámbialo para cerrar todas las sesiones."
+      }
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "name": "@bllt/shared",
+  "version": "0.1.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./schema": "./src/schema/index.ts",
+    "./schema/desktop": "./src/schema/desktop.ts",
+    "./schema/cloud": "./src/schema/cloud.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "drizzle-orm": "0.45.3",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "typescript": "6.0.3",
+    "vitest": "5.0.2"
+  }
+}

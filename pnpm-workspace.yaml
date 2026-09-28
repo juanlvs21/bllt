@@ -1,0 +1,13 @@
+packages:
+  - apps/worker
+  - apps/web
+  - packages/shared
+  - packages/ui
+
+allowBuilds:
+  better-sqlite3: false
+  esbuild: true
+  sharp: true
+  workerd: true
+
+saveExact: true

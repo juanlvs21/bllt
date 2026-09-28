@@ -1,0 +1,29 @@
+{
+  "name": "@bllt/worker",
+  "version": "0.1.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "scripts": {
+    "build:web": "pnpm --filter @bllt/web build && node scripts/copy-web.mjs",
+    "build": "pnpm build:web",
+    "dev": "wrangler d1 migrations apply DB --local && wrangler dev",
+    "deploy": "pnpm build && wrangler d1 migrations apply DB --remote && wrangler deploy",
+    "db:generate": "drizzle-kit generate",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@bllt/shared": "workspace:*",
+    "drizzle-orm": "0.45.3",
+    "hono": "4.13.9",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "5.20260927.1",
+    "drizzle-kit": "0.31.11",
+    "typescript": "6.0.3",
+    "vitest": "5.0.2",
+    "wrangler": "4.141.0"
+  }
+}
