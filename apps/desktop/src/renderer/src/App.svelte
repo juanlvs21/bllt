@@ -11,6 +11,7 @@
   import LoginPage from './modules/auth/pages/LoginPage.svelte'
   import SetupPage from './modules/auth/pages/SetupPage.svelte'
   import RateConfirmDialog from './modules/rates/components/RateConfirmDialog.svelte'
+  import RateChangeDialog from './modules/rates/components/RateChangeDialog.svelte'
   import RateConfirmPage from './modules/rates/pages/RateConfirmPage.svelte'
   import { rateStore } from './modules/rates/stores/rate.svelte'
   import DashboardPage from './modules/dashboard/pages/DashboardPage.svelte'
@@ -22,6 +23,7 @@
 
   let phase = $state<'loading' | 'setup' | 'login' | 'rate' | 'app'>('loading')
   let rateDialog = $state(false)
+  let rateChangeDialog = $state(false)
   /** Business date for which the user already saw (or skipped) the rate screen. */
   let rateGateSeenFor = ''
 
@@ -32,6 +34,7 @@
     phase = !rateStore.confirmed && rateGateSeenFor !== today ? 'rate' : 'app'
     rateGateSeenFor = today
     router.go('dashboard')
+    void rateStore.check()
   }
 
   async function logout() {
@@ -55,9 +58,14 @@
         if (!rateStore.confirmed) phase = 'rate'
       }
     }, 60_000)
+    // Without the cloud nothing pushes suggestions, so look for a newer rate every hour.
+    const rateCheck = setInterval(() => {
+      if (phase === 'app') void rateStore.check()
+    }, 3_600_000)
     return () => {
       offSuggestion()
       clearInterval(dayCheck)
+      clearInterval(rateCheck)
     }
   })
 
@@ -80,7 +88,10 @@
   {:else if phase === 'rate'}
     <RateConfirmPage onDone={() => (phase = 'app')} />
   {:else}
-    <AppShell onLogout={logout} onRateClick={() => (rateDialog = true)}>
+    <AppShell
+      onLogout={logout}
+      onRateClick={() => (rateStore.change ? (rateChangeDialog = true) : (rateDialog = true))}
+    >
       {#key router.page}
         {#if router.page === 'dashboard'}
           <DashboardPage onConfirmRate={() => (rateDialog = true)} />
@@ -98,5 +109,12 @@
       {/key}
     </AppShell>
     <RateConfirmDialog bind:open={rateDialog} />
+    <RateChangeDialog
+      bind:open={rateChangeDialog}
+      onManual={() => {
+        rateChangeDialog = false
+        rateDialog = true
+      }}
+    />
   {/if}
 </Tooltip.Provider>

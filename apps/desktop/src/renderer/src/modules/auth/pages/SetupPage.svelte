@@ -1,13 +1,13 @@
 <script lang="ts">
-  import { businessInput } from '@bllt/shared'
-  import { Button, Checkbox, Input, Label, Card } from '@bllt/ui'
-  import CopyIcon from '@lucide/svelte/icons/copy'
+  import { businessInput, rifSchema } from '@bllt/shared'
+  import { Button, Checkbox, Input, Label } from '@bllt/ui'
   import type { SessionUser } from '../../../../../types/api'
   import { attempt } from '../../../lib/api'
   import LogoField from '../../business/components/LogoField.svelte'
   import { businessStore } from '../../business/stores/business.svelte'
   import { authApi } from '../api'
   import AuthLayout from '../components/AuthLayout.svelte'
+  import RecoveryCode from '../components/RecoveryCode.svelte'
 
   let { onDone }: { onDone: (user: SessionUser) => void } = $props()
 
@@ -25,6 +25,12 @@
   let createdUser = $state<SessionUser | null>(null)
   let savedCode = $state(false)
   let error = $state('')
+
+  /** Shows a valid RIF the way it's stored ("j123456789" → "J-12345678-9"). */
+  const formatRif = (value: string) => {
+    const parsed = rifSchema.safeParse(value)
+    return parsed.success ? parsed.data : value
+  }
 
   function nextBusiness(event: SubmitEvent) {
     event.preventDefault()
@@ -83,7 +89,13 @@
       </div>
       <div class="space-y-1.5">
         <Label for="rif">RIF (opcional)</Label>
-        <Input id="rif" class="h-10 font-mono" placeholder="J-12345678-9" bind:value={rif} />
+        <Input
+          id="rif"
+          class="h-10 font-mono"
+          placeholder="J-12345678-9"
+          bind:value={rif}
+          onblur={() => (rif = formatRif(rif))}
+        />
       </div>
       <LogoField bind:value={logo} />
       {#if error}<p class="text-destructive text-sm">{error}</p>{/if}
@@ -170,19 +182,7 @@
       Anótalo en papel y guárdalo. Es la única forma de recuperar la cuenta del dueño si olvidas la
       contraseña. No se vuelve a mostrar.
     </p>
-    <Card.Root class="bg-gold-soft ring-gold/40 mb-6">
-      <Card.Content class="flex items-center justify-between gap-4">
-        <span class="tabular font-mono text-2xl font-bold tracking-widest">{recoveryCode}</span>
-        <Button
-          variant="ghost"
-          size="icon"
-          onclick={() => navigator.clipboard.writeText(recoveryCode)}
-          aria-label="Copiar"
-        >
-          <CopyIcon />
-        </Button>
-      </Card.Content>
-    </Card.Root>
+    <RecoveryCode code={recoveryCode} class="mb-6" />
     <label class="mb-6 flex items-center gap-3 text-sm">
       <Checkbox bind:checked={savedCode} />
       Ya lo anoté en un lugar seguro

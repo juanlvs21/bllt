@@ -13,6 +13,8 @@ order: 13
 
 En **Configuración → Usuarios** (solo administradores):
 
+![Configuración, pestaña Usuarios](/capturas/13-users.png)
+
 - **Nuevo usuario:** usuario, contraseña y rol.
 - **Activo:** desactiva a quien ya no trabaja contigo. No se borra: sus ventas siguen a su nombre. Si usas la nube, su sesión en el teléfono se cierra en la siguiente sincronización.
 - **Cambiar contraseña:** para un empleado que olvidó la suya.

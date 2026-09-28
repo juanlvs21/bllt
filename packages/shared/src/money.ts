@@ -55,15 +55,17 @@ export function formatRate(rate: number): string {
   return rateFormatter.format(rateToNumber(rate))
 }
 
-/** Plain decimal for editable inputs ("12.50"), never localized. */
+/** Editable text for inputs with a decimal comma and no thousands separator ("1234,50"). */
 export function centsToInput(cents: number): string {
-  return (cents / 100).toFixed(2)
+  return (cents / 100).toFixed(2).replace('.', ',')
 }
 
+/** Rate for inputs ("855,6625"), keeping at least two decimals ("36,10"). */
 export function rateToInput(rate: number): string {
   return rateToNumber(rate)
     .toFixed(4)
     .replace(/0{1,2}$/, '')
+    .replace('.', ',')
 }
 
 function parseDecimal(raw: string): number | null {

@@ -166,6 +166,9 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
   }
+  ::selection {
+    @apply bg-primary text-primary-foreground;
+  }
   .tabular {
     font-variant-numeric: tabular-nums;
   }

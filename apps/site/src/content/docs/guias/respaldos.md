@@ -6,9 +6,11 @@ order: 14
 
 Bllt respalda solo, sin que hagas nada:
 
-- Una copia **cada vez que cierras** la app.
-- Una copia **diaria** si queda abierta.
-- Se guardan los **últimos 30 días**.
+- Una copia **diaria**, la primera vez que abres Bllt cada día.
+- Se guardan los **últimos 7 días**.
+- Cuando quieras, pulsa **Respaldar ahora** en **Configuración → Respaldos**.
+
+![Configuración, pestaña Respaldos](/capturas/15-backups.png)
 
 Van a `Documentos\Bllt\Backups` con nombres como `bllt-2026-09-27_183000.db`. Si tu carpeta Documentos está sincronizada con OneDrive, además quedan en la nube de Microsoft.
 

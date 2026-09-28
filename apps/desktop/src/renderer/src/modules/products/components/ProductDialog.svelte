@@ -84,11 +84,11 @@
       </div>
       <div class="space-y-1.5">
         <Label for="p-cost">Precio de compra</Label>
-        <MoneyInput id="p-cost" bind:value={costCents} placeholder="0.00" />
+        <MoneyInput id="p-cost" bind:value={costCents} placeholder="0,00" />
       </div>
       <div class="space-y-1.5">
         <Label for="p-price">Precio de venta</Label>
-        <MoneyInput id="p-price" bind:value={priceCents} placeholder="0.00" />
+        <MoneyInput id="p-price" bind:value={priceCents} placeholder="0,00" />
       </div>
       {#if margin != null}
         <p

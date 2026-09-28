@@ -20,6 +20,7 @@
   import { formatBusinessDate } from '../../../lib/format'
   import { session } from '../../../lib/session.svelte'
   import { settingsApi } from '../api'
+  import RecoveryCode from '../../auth/components/RecoveryCode.svelte'
 
   let users = $state<UserDto[]>([])
   let createOpen = $state(false)
@@ -228,13 +229,9 @@
       <AlertDialog.Title>Nuevo código de recuperación</AlertDialog.Title>
       <AlertDialog.Description>Anótalo en papel. No se vuelve a mostrar.</AlertDialog.Description>
     </AlertDialog.Header>
-    <p
-      class="bg-gold-soft tabular rounded-xl p-4 text-center font-mono text-2xl font-bold tracking-widest"
-    >
-      {newCode}
-    </p>
+    <RecoveryCode code={newCode} />
     <AlertDialog.Footer>
-      <AlertDialog.Action>Ya lo anoté</AlertDialog.Action>
+      <AlertDialog.Action onclick={() => (codeOpen = false)}>Ya lo anoté</AlertDialog.Action>
     </AlertDialog.Footer>
   </AlertDialog.Content>
 </AlertDialog.Root>

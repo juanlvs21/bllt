@@ -31,11 +31,13 @@ Anota el `SYNC_TOKEN` antes de continuar.
 
 ## 3. Copia la URL
 
-Al terminar verás una dirección como `https://bllt.tu-usuario.workers.dev`. Ábrela: debe aparecer la pantalla de inicio de sesión.
+Al terminar verás una dirección como `https://bllt-pwa.tu-usuario.workers.dev`. Ábrela: debe aparecer la pantalla de inicio de sesión.
 
 ## 4. Pégala en la PC
 
 En Bllt: **Configuración → Nube**. Pega la URL y el `SYNC_TOKEN`, pulsa **Guardar** y luego **Probar conexión**.
+
+![Configuración, pestaña Nube](/capturas/14-cloud.png)
 
 En el inicio verás “Sincronizado hace 1 min”. Si la conexión cae, los cambios se acumulan y suben solos al volver.
 

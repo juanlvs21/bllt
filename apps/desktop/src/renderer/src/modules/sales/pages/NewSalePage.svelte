@@ -114,7 +114,7 @@
   }
 </script>
 
-<PageHeader title="Nueva venta" description="Escanea o escribe el código y pulsa Enter.">
+<PageHeader title="Nueva venta" description="Escribe el código o el nombre y pulsa Enter.">
   {#snippet actions()}
     {#if rate}
       <span class="text-muted-foreground text-sm"

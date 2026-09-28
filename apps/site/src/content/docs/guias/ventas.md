@@ -1,17 +1,33 @@
 ---
 title: Registrar una venta
-description: Ventas con o sin cliente, lector de código de barras, factura y anulación.
+description: Ventas con o sin cliente, comprobante en PDF y anulación.
 order: 12
 ---
 
 Ve a **Nueva venta**.
 
-1. Escanea el código o escríbelo y pulsa **Enter**. También puedes tocar el producto en la lista.
+1. Escribe el código o el nombre del producto y pulsa **Enter**. También puedes tocar el producto en la lista.
 2. Ajusta cantidades con **+** y **−**. Bllt no deja vender más de lo que hay en inventario.
 3. **Cliente (opcional):** déjalo en *Venta anónima* o búscalo por nombre o cédula. Puedes registrar uno nuevo ahí mismo.
 4. Pulsa **Registrar venta**. Se abre un resumen con los productos, el cliente y los totales en USD y Bs; revísalo y pulsa **Confirmar venta** (o **Volver** para seguir editando).
 
-Se descuenta el inventario y se abre el comprobante con los montos en USD y Bs. Puedes imprimirlo.
+![Nueva venta con el carrito lleno y un cliente elegido](/capturas/06-new-sale.png)
+
+![Resumen de la venta antes de confirmarla](/capturas/11-sale-summary.png)
+
+Se descuenta el inventario y se abre el comprobante con los montos en USD y Bs.
+
+![Comprobante de la venta en la app](/capturas/07-invoice.png)
+
+## Comprobante en PDF
+
+En el comprobante pulsa **Imprimir**. Bllt genera un PDF tamaño carta y lo abre en una vista previa:
+
+- Lleva el logo, el nombre y el RIF del negocio, el número y la fecha de la venta, el cliente, la tasa del día y cada producto con su total en USD y Bs.
+- Si la venta es larga ocupa varias páginas; el membrete y el pie se repiten en cada una.
+- Desde la vista previa lo **imprimes** o lo **guardas**. Al guardar, Bllt propone la carpeta `Documentos\Bllt\Receipts` y un nombre como `Venta-1658.pdf`.
+
+![Vista previa del comprobante en PDF](/capturas/12-receipt-pdf.png)
 
 ## Ejemplo
 

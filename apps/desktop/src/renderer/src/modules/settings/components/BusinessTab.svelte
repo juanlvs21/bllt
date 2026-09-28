@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { rifSchema } from '@bllt/shared'
   import { Button, Card, Input, Label } from '@bllt/ui'
   import { attempt } from '../../../lib/api'
   import { businessApi } from '../../business/api'
@@ -39,7 +40,17 @@
       </div>
       <div class="space-y-1.5">
         <Label for="b-rif">RIF (opcional)</Label>
-        <Input id="b-rif" placeholder="J-12345678-9" bind:value={rif} class="font-mono" />
+        <Input
+          id="b-rif"
+          placeholder="J-12345678-9"
+          bind:value={rif}
+          class="font-mono"
+          onblur={() => {
+            // Shows a valid RIF the way it's stored ("j123456789" → "J-12345678-9").
+            const parsed = rifSchema.safeParse(rif)
+            if (parsed.success) rif = parsed.data
+          }}
+        />
       </div>
       <LogoField id="b-logo" bind:value={logo} />
       <Button type="submit" class="rounded-full" disabled={!name.trim()}>Guardar</Button>

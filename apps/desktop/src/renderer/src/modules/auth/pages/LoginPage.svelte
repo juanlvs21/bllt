@@ -27,21 +27,30 @@
 
   async function recover(event: SubmitEvent) {
     event.preventDefault()
-    const ok = await attempt(
-      () =>
-        authApi.recover({
-          username: recoverUser,
-          recoveryCode: recoverCode,
-          newPassword: recoverPassword
-        }),
-      'Contraseña actualizada. Ya puedes entrar.'
-    )
-    if (ok !== undefined) {
-      recoverOpen = false
+    // recover() resolves to nothing, so success is signalled explicitly.
+    const ok = await attempt(async () => {
+      await authApi.recover({
+        username: recoverUser,
+        recoveryCode: recoverCode,
+        newPassword: recoverPassword
+      })
+      return true
+    }, 'Contraseña actualizada. Ya puedes entrar.')
+    if (ok) {
       username = recoverUser
       password = ''
+      recoverOpen = false
     }
   }
+
+  // The code and the new password never linger once the dialog closes.
+  $effect(() => {
+    if (!recoverOpen) {
+      recoverUser = ''
+      recoverCode = ''
+      recoverPassword = ''
+    }
+  })
 </script>
 
 <AuthLayout>

@@ -7,6 +7,8 @@
   import ShieldIcon from '@lucide/svelte/icons/shield-check'
   import ReceiptIcon from '@lucide/svelte/icons/receipt-text'
   import UsersIcon from '@lucide/svelte/icons/users'
+  import FileTextIcon from '@lucide/svelte/icons/file-text'
+  import CheckIcon from '@lucide/svelte/icons/check'
   import { SITE } from '$lib/site'
 
   const features = [
@@ -33,13 +35,20 @@
     {
       icon: ShieldIcon,
       title: 'Respaldos automáticos',
-      text: 'Una copia al cerrar y otra diaria en Documentos/Bllt.'
+      text: 'Una copia diaria en Documentos/Bllt, sin que hagas nada.'
     },
     {
       icon: SmartphoneIcon,
       title: 'Resumen en el teléfono',
       text: 'Opcional y gratis con Cloudflare: ganancias y tasa desde cualquier lado.'
     }
+  ]
+
+  const receiptPoints = [
+    'Logo, nombre y RIF de tu negocio en el membrete.',
+    'Cliente, tasa del día y cada producto en USD y Bs.',
+    'Tamaño carta; si la venta es larga, sigue en varias páginas.',
+    'Lo imprimes o lo guardas en Documentos/Bllt/Receipts.'
   ]
 </script>
 
@@ -114,16 +123,16 @@
   <section class="mx-auto max-w-6xl px-4 py-16">
     <h2 class="text-2xl font-bold">Una venta de ejemplo</h2>
     <p class="text-muted-foreground mt-2 max-w-2xl">
-      Tasa confirmada del día: 855,6625 Bs/USD. Vendes 2 Harina PAN a $1,40 (costo $0,95) y un café
-      a $3,90 (costo $2,80). Total <strong class="text-foreground">$6,70 · Bs 5.732,94</strong>;
-      ganancia
-      <strong class="text-primary">$2,00 · Bs 1.711,33</strong>. Si mañana sube la tasa, esa venta
+      Tasa confirmada del día: 855,6625 Bs/USD. El Comedor Doña Carmen se lleva 14 artículos:
+      harina, arroz, café, aceite, queso, huevos y más. Total
+      <strong class="text-foreground">$33,05 · Bs 28.279,65</strong>; ganancia
+      <strong class="text-primary">$9,05 · Bs 7.743,75</strong>. Si mañana sube la tasa, esa venta
       sigue valiendo lo mismo.
     </p>
     <div class="mt-8 grid gap-6 md:grid-cols-2">
       <img
         src="/capturas/06-new-sale.png"
-        alt="Pantalla de nueva venta con lector de código"
+        alt="Pantalla de nueva venta con el carrito y el cliente"
         class="ring-foreground/10 rounded-xl ring-1"
         loading="lazy"
       />
@@ -136,7 +145,43 @@
     </div>
   </section>
 
-  <section class="mx-auto max-w-6xl px-4 pb-20">
+  <section class="bg-card border-y">
+    <div class="mx-auto grid max-w-6xl items-center gap-12 px-4 py-16 lg:grid-cols-2">
+      <div>
+        <div
+          class="bg-secondary text-secondary-foreground mb-4 flex size-11 items-center justify-center rounded-xl"
+        >
+          <FileTextIcon class="size-5" />
+        </div>
+        <h2 class="text-2xl font-bold">Comprobante en PDF</h2>
+        <p class="text-muted-foreground mt-2 max-w-lg">
+          Al terminar una venta pulsa <strong class="text-foreground">Imprimir</strong>: Bllt arma
+          el comprobante en PDF y te lo muestra antes de imprimirlo o guardarlo.
+        </p>
+        <ul class="mt-6 space-y-3">
+          {#each receiptPoints as point (point)}
+            <li class="flex gap-3">
+              <CheckIcon class="text-primary mt-0.5 size-5 shrink-0" />
+              <span>{point}</span>
+            </li>
+          {/each}
+        </ul>
+        <p class="text-muted-foreground mt-6 text-sm">
+          Es un comprobante informativo, no una factura fiscal.
+        </p>
+      </div>
+      <img
+        src="/capturas/12-receipt-pdf.png"
+        alt="Vista previa del comprobante en PDF con el membrete del negocio, el cliente y los productos en USD y Bs"
+        class="ring-foreground/10 mx-auto w-full max-w-lg rounded-xl shadow-xl ring-1"
+        width="900"
+        height="1000"
+        loading="lazy"
+      />
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-6xl px-4 py-20">
     <div
       class="bg-primary text-primary-foreground flex flex-wrap items-center justify-between gap-6 rounded-3xl p-10"
     >

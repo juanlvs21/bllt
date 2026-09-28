@@ -92,6 +92,7 @@ pnpm install
 | `pnpm --filter @bllt/shared test` | Pruebas de dinero, hora, ganancias y contraseñas |
 | `pnpm --filter @bllt/desktop test:e2e` | Prueba de humo con Playwright sobre la app construida (primer arranque → tasa → productos → venta → dashboard → respaldo). Con `BLLT_E2E_WORKER=http://localhost:8787` también prueba el sync |
 | `pnpm --filter @bllt/desktop seed:demo` | Llena la base local con datos de demo (40 productos, 38 clientes, tasas y ~90 días de ventas). Cierra Bllt antes; `--reset` reemplaza los datos, `--help` muestra las opciones. Guarda una copia de la base antes de escribir y no toca el outbox |
+| `pnpm --filter @bllt/desktop capturas` | Regenera las capturas del README y la landing (`apps/site/static/capturas`) sobre una base temporal con los datos de demo |
 | `pnpm --filter @bllt/desktop build:win` | Instalador NSIS |
 
 ## Decisiones clave

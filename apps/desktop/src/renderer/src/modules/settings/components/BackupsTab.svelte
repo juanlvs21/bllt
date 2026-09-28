@@ -37,6 +37,7 @@
   }
 
   async function restore() {
+    restoreOpen = false
     if (restoreTarget) await attempt(() => settingsApi.backups.restore(restoreTarget!.path))
     else await attempt(() => settingsApi.backups.chooseFileAndRestore())
   }

@@ -4,11 +4,13 @@ import {
   businessDayRange,
   businessInput,
   businessMonthRange,
+  centsToInput,
   formatBusinessTime,
   hashPassword,
   LOGO_MAX_LENGTH,
   parseRate,
   parseUsdToCents,
+  rateToInput,
   summarizeProfit,
   usdCentsToBsCents,
   verifyPassword
@@ -26,6 +28,14 @@ describe('money', () => {
   it('scales the rate to 4 decimals and converts to Bs', () => {
     expect(parseRate('36,1234')).toBe(361234)
     expect(parseRate(0)).toBeNull()
+  })
+
+  it('writes input text with a decimal comma that parses back', () => {
+    expect(rateToInput(8556625)).toBe('855,6625')
+    expect(rateToInput(361000)).toBe('36,10')
+    expect(centsToInput(123450)).toBe('1234,50')
+    expect(parseRate(rateToInput(8556625))).toBe(8556625)
+    expect(parseUsdToCents(centsToInput(123450))).toBe(123450)
     expect(usdCentsToBsCents(1000, 361234)).toBe(36123)
   })
 })

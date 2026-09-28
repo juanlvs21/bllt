@@ -9,6 +9,8 @@
   import SettingsIcon from '@lucide/svelte/icons/settings'
   import LogOutIcon from '@lucide/svelte/icons/log-out'
   import SunMoonIcon from '@lucide/svelte/icons/sun-moon'
+  import TrendingUpIcon from '@lucide/svelte/icons/trending-up'
+  import TrendingDownIcon from '@lucide/svelte/icons/trending-down'
   import { toggleMode } from 'mode-watcher'
   import { router, type Page } from '../lib/router.svelte'
   import { session } from '../lib/session.svelte'
@@ -23,6 +25,7 @@
   }: { children: Snippet; onLogout: () => void; onRateClick: () => void } = $props()
 
   let confirmLogout = $state(false)
+  const rateChange = $derived(rateStore.change)
 
   const items: { page: Page; label: string; icon: Component }[] = [
     { page: 'dashboard', label: 'Inicio', icon: HomeIcon },
@@ -99,14 +102,32 @@
   <div class="flex min-w-0 flex-1 flex-col">
     <header class="bg-background flex h-16 shrink-0 items-center justify-end gap-3 px-8">
       <button
-        class="bg-card ring-foreground/10 hover:ring-primary/50 flex items-center gap-2 rounded-full px-4 py-1.5 text-sm ring-1 transition"
+        class={cn(
+          'bg-card hover:ring-primary/50 relative flex items-center gap-2 rounded-full px-4 py-1.5 text-sm ring-1 transition',
+          rateChange ? 'ring-gold/60' : 'ring-foreground/10'
+        )}
         onclick={onRateClick}
+        title={rateChange ? 'Hay una tasa nueva' : undefined}
       >
         <span class="text-muted-foreground">Tasa</span>
         {#if rateStore.confirmed}
           <span class="tabular font-semibold">{formatRate(rateStore.confirmed.bsPerUsd)} Bs</span>
         {:else}
           <Badge variant="destructive">Sin confirmar</Badge>
+        {/if}
+        {#if rateChange}
+          <Badge class="bg-gold text-gold-foreground">
+            {#if rateChange.bsPerUsd > (rateStore.confirmed?.bsPerUsd ?? 0)}
+              <TrendingUpIcon />
+            {:else}
+              <TrendingDownIcon />
+            {/if}
+            Nueva
+          </Badge>
+          <span class="absolute -top-0.5 -right-0.5 flex size-2.5" aria-hidden="true">
+            <span class="bg-gold absolute size-full animate-ping rounded-full opacity-75"></span>
+            <span class="bg-gold relative size-2.5 rounded-full"></span>
+          </span>
         {/if}
       </button>
       <Button variant="ghost" size="icon" onclick={toggleMode} aria-label="Cambiar tema">
