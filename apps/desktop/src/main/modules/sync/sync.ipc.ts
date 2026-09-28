@@ -9,5 +9,7 @@ export function registerSyncIpc(): void {
   handle('sync:saveSettings', { role: Role.ADMIN, input: cloudSettingsInput }, (input) =>
     syncService.saveSettings(input)
   )
-  handle('sync:test', { role: Role.ADMIN }, () => syncService.test())
+  handle('sync:test', { role: Role.ADMIN, input: cloudSettingsInput }, (input) =>
+    syncService.test(input)
+  )
 }

@@ -5,6 +5,21 @@ import { OUTBOX_ENTITIES, RATE_DECISIONS, RATE_SOURCES, ROLES, SALE_STATUSES } f
 export const SYNC_BATCH_SIZE = 100
 
 /**
+ * Sync contract version, announced by the Worker on /api/health. Each business deploys its own
+ * copy and may not update it, so the desktop keeps messages an older Worker would reject in the
+ * outbox until it's updated. Bump it when adding an outbox entity, and list the entity below.
+ */
+export const SYNC_PROTOCOL = 2
+
+/** Protocol each entity needs, when newer than 1. */
+export const ENTITY_PROTOCOL: Partial<Record<(typeof OUTBOX_ENTITIES)[number], number>> = {
+  BUSINESS: 2
+}
+
+/** Workers from before the protocol answer `{ ok: true }` only: that's version 1. */
+export const healthResponse = z.object({ ok: z.boolean(), protocol: z.number().int().default(1) })
+
+/**
  * D1 caps statements per invocation on the free plan, so the Worker accepts
  * a prefix of each batch that fits this budget and the desktop sends the rest
  * in the next request.
@@ -82,13 +97,17 @@ export const rateDecisionPayload = z.object({
   decidedAt: z.string()
 })
 
+/** Only the name: the phone shows it; RIF and logo stay on the desktop. */
+export const businessPayload = z.object({ name: z.string() })
+
 export const outboxMessage = z.discriminatedUnion('entity', [
   z.object({ id: z.string(), entity: z.literal('USER'), payload: userPayload }),
   z.object({ id: z.string(), entity: z.literal('PRODUCT'), payload: productPayload }),
   z.object({ id: z.string(), entity: z.literal('CUSTOMER'), payload: customerPayload }),
   z.object({ id: z.string(), entity: z.literal('SALE'), payload: salePayload }),
   z.object({ id: z.string(), entity: z.literal('EXCHANGE_RATE'), payload: exchangeRatePayload }),
-  z.object({ id: z.string(), entity: z.literal('RATE_DECISION'), payload: rateDecisionPayload })
+  z.object({ id: z.string(), entity: z.literal('RATE_DECISION'), payload: rateDecisionPayload }),
+  z.object({ id: z.string(), entity: z.literal('BUSINESS'), payload: businessPayload })
 ])
 export type OutboxMessage = z.infer<typeof outboxMessage>
 

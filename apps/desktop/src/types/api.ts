@@ -151,6 +151,8 @@ export interface SyncStatus {
   pending: number
   lastSyncAt: string | null
   lastError: string | null
+  /** The Worker runs an older sync protocol: some changes wait until it's updated. */
+  workerOutdated: boolean
 }
 
 export interface CloudSettings {
@@ -259,7 +261,8 @@ export interface BlltApi {
     runNow(): R<SyncStatus>
     getSettings(): R<CloudSettings>
     saveSettings(input: CloudSettingsInput): R<CloudSettings>
-    test(): R<{ ok: boolean; message: string }>
+    /** Tries the typed URL and token (empty token: the stored one) without saving. */
+    test(input: CloudSettingsInput): R<{ ok: boolean; message: string }>
   }
   backups: {
     list(): R<BackupInfo[]>

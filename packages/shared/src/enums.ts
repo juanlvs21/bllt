@@ -34,7 +34,8 @@ export const OutboxEntity = {
   CUSTOMER: 'CUSTOMER',
   SALE: 'SALE',
   EXCHANGE_RATE: 'EXCHANGE_RATE',
-  RATE_DECISION: 'RATE_DECISION'
+  RATE_DECISION: 'RATE_DECISION',
+  BUSINESS: 'BUSINESS'
 } as const
 export type OutboxEntity = (typeof OutboxEntity)[keyof typeof OutboxEntity]
 export const OUTBOX_ENTITIES = [
@@ -43,7 +44,8 @@ export const OUTBOX_ENTITIES = [
   OutboxEntity.CUSTOMER,
   OutboxEntity.SALE,
   OutboxEntity.EXCHANGE_RATE,
-  OutboxEntity.RATE_DECISION
+  OutboxEntity.RATE_DECISION,
+  OutboxEntity.BUSINESS
 ] as const
 
 /** What the desktop did with a Worker rate candidate. */

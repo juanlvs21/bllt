@@ -42,6 +42,17 @@ for (const path of ['apps/worker/src', 'apps/worker/public', 'apps/worker/migrat
 writeFileSync(join(out, 'wrangler.jsonc'), wrangler)
 copyFileSync(join(root, 'apps/worker/.dev.vars.example'), join(out, '.dev.vars.example'))
 
+// Self-update: the business's repo runs this workflow, which runs update.mjs from upstream.
+mkdirSync(join(out, 'scripts'), { recursive: true })
+copyFileSync(join(root, 'scripts/cloud/update.mjs'), join(out, 'scripts/update.mjs'))
+mkdirSync(join(out, '.github/workflows'), { recursive: true })
+copyFileSync(
+  join(root, 'scripts/cloud/update-cloud.yml'),
+  join(out, '.github/workflows/update-cloud.yml')
+)
+const version = execFileSync('git', ['rev-parse', '--short', 'HEAD'], { cwd: root }).toString()
+writeFileSync(join(out, '.bllt-version'), version)
+
 writeFileSync(
   join(out, 'package.json'),
   JSON.stringify(
@@ -95,8 +106,15 @@ Este repositorio es la parte en la nube de [Bllt](https://github.com/juanlvs21/b
 
 Se generó con el botón *Deploy to Cloudflare*. Guía: [bllt.juanl.dev/docs/nube](https://bllt.juanl.dev/docs/nube).
 
-El nombre del negocio en la PWA sale de la variable de compilación \`BUSINESS_NAME\`
-(en Cloudflare: *Settings → Build → Variables*).
+El nombre del negocio en la PWA es el de la app de escritorio: se sincroniza con el resto de
+los datos.
+
+## Actualizar
+
+*Actions → Update cloud → Run workflow* trae la última versión y Cloudflare la despliega
+(también corre sola cada lunes). Conserva tu \`wrangler.jsonc\` (nombre del Worker e id de la
+base D1); el resto de los archivos se reemplaza. Guía:
+[bllt.juanl.dev/docs/guias/actualizar-nube](https://bllt.juanl.dev/docs/guias/actualizar-nube).
 `
 )
 

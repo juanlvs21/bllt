@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Alert, Button, Card, Input, Label } from '@bllt/ui'
+  import { Alert, AlertDialog, Button, Card, Input, Label } from '@bllt/ui'
   import InfoIcon from '@lucide/svelte/icons/info'
   import { onMount } from 'svelte'
   import type { CloudSettings } from '../../../../../types/api'
@@ -11,6 +11,9 @@
   let syncToken = $state('')
   let testing = $state(false)
   let testResult = $state<{ ok: boolean; message: string } | null>(null)
+  let confirmDisconnect = $state(false)
+  // A stored token counts: the test falls back to it when the field is empty.
+  const canTest = $derived(!!workerUrl.trim() && (!!syncToken.trim() || !!settings?.hasToken))
 
   onMount(async () => {
     settings = (await attempt(() => settingsApi.cloud.get())) ?? null
@@ -30,10 +33,28 @@
     }
   }
 
+  /** Tries what is typed in the form, saved or not. */
   async function test() {
     testing = true
-    testResult = (await attempt(() => settingsApi.cloud.test())) ?? null
+    testResult =
+      (await attempt(() =>
+        settingsApi.cloud.test({ workerUrl: workerUrl.trim(), syncToken: syncToken.trim() })
+      )) ?? null
     testing = false
+  }
+
+  async function disconnect() {
+    confirmDisconnect = false
+    const saved = await attempt(
+      () => settingsApi.cloud.save({ workerUrl: '', syncToken: '' }),
+      'Nube desconectada'
+    )
+    if (saved) {
+      settings = saved
+      workerUrl = ''
+      syncToken = ''
+      testResult = null
+    }
   }
 </script>
 
@@ -76,7 +97,7 @@
           <Button
             variant="outline"
             class="rounded-full"
-            disabled={testing || !settings?.workerUrl}
+            disabled={testing || !canTest}
             onclick={test}
           >
             Probar conexión
@@ -85,10 +106,7 @@
             <Button
               variant="ghost"
               class="text-destructive ml-auto"
-              onclick={() => {
-                workerUrl = ''
-                syncToken = ''
-              }}>Desconectar</Button
+              onclick={() => (confirmDisconnect = true)}>Desconectar</Button
             >
           {/if}
         </div>
@@ -117,3 +135,20 @@
     </Alert.Description>
   </Alert.Root>
 </div>
+
+<AlertDialog.Root bind:open={confirmDisconnect}>
+  <AlertDialog.Content>
+    <AlertDialog.Header>
+      <AlertDialog.Title>¿Desconectar la nube?</AlertDialog.Title>
+      <AlertDialog.Description>
+        Se borran la URL y el SYNC_TOKEN de este equipo y las ventas dejan de subir. Lo que ya está
+        en el Worker se queda allí; para volver a conectar tendrás que pegar el token otra vez.
+      </AlertDialog.Description>
+    </AlertDialog.Header>
+    <AlertDialog.Footer>
+      <AlertDialog.Cancel>Cancelar</AlertDialog.Cancel>
+      <AlertDialog.Action variant="destructive" onclick={disconnect}>Desconectar</AlertDialog.Action
+      >
+    </AlertDialog.Footer>
+  </AlertDialog.Content>
+</AlertDialog.Root>

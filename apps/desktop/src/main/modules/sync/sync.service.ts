@@ -1,10 +1,13 @@
 import {
   DomainError,
+  ENTITY_PROTOCOL,
   ErrorCode,
+  healthResponse,
   nowIso,
   pushResponse,
   rateResponse,
   SYNC_BATCH_SIZE,
+  SYNC_PROTOCOL,
   type OutboxEntity,
   type OutboxMessage,
   type RateResponse
@@ -21,7 +24,12 @@ import { outboxRepository } from './outbox.repository'
 
 type CandidateListener = (candidates: RateResponse) => void
 
-const state = { running: false, lastError: null as string | null }
+const state = {
+  running: false,
+  lastError: null as string | null,
+  /** Last protocol the Worker announced; null until the first cycle. */
+  protocol: null as number | null
+}
 const candidateListeners: CandidateListener[] = []
 let timer: NodeJS.Timeout | null = null
 
@@ -33,8 +41,7 @@ function config(): { url: string; token: string } | null {
   return token ? { url: url.replace(/\/+$/, ''), token } : null
 }
 
-async function request(path: string, init: RequestInit = {}): Promise<Response> {
-  const cfg = config()
+async function request(path: string, init: RequestInit = {}, cfg = config()): Promise<Response> {
   if (!cfg) throw new DomainError(ErrorCode.UNAVAILABLE, 'La nube no está configurada')
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), 15_000)
@@ -57,9 +64,22 @@ async function request(path: string, init: RequestInit = {}): Promise<Response> 
   }
 }
 
-async function pushPending(): Promise<void> {
+/** Entities this Worker's protocol can't take; they stay in the outbox until it's updated. */
+function heldFor(protocol: number): OutboxEntity[] {
+  return (Object.entries(ENTITY_PROTOCOL) as [OutboxEntity, number][])
+    .filter(([, since]) => since > protocol)
+    .map(([entity]) => entity)
+}
+
+async function workerProtocol(): Promise<number> {
+  const res = await request('/api/health')
+  return healthResponse.parse(await res.json()).protocol
+}
+
+async function pushPending(protocol: number): Promise<void> {
+  const held = heldFor(protocol)
   for (;;) {
-    const rows = outboxRepository.pending(SYNC_BATCH_SIZE)
+    const rows = outboxRepository.pending(SYNC_BATCH_SIZE, held)
     if (rows.length === 0) return
     const messages = rows.map(
       (row) =>
@@ -99,9 +119,11 @@ export const syncService = {
     return {
       configured: this.isConfigured(),
       running: state.running,
-      pending: outboxRepository.countPending(),
+      // What's held for an older Worker isn't counted: the notice below covers it.
+      pending: outboxRepository.countPending(heldFor(state.protocol ?? SYNC_PROTOCOL)),
       lastSyncAt: settingsService.get(SettingKey.LAST_SYNC_AT),
-      lastError: state.lastError
+      lastError: state.lastError,
+      workerOutdated: state.protocol !== null && state.protocol < SYNC_PROTOCOL
     }
   },
 
@@ -110,8 +132,8 @@ export const syncService = {
   },
 
   /** Rate candidates from the Worker (cron and phone); never applied automatically. */
-  async fetchCandidates(): Promise<RateResponse> {
-    const res = await request('/api/sync/rate')
+  async fetchCandidates(cfg = config()): Promise<RateResponse> {
+    const res = await request('/api/sync/rate', {}, cfg)
     return rateResponse.parse(await res.json())
   },
 
@@ -121,7 +143,8 @@ export const syncService = {
     state.running = true
     broadcast(EventChannel.SYNC_STATUS, this.status())
     try {
-      await pushPending()
+      state.protocol = await workerProtocol()
+      await pushPending(state.protocol)
       settingsService.set(SettingKey.LAST_SYNC_AT, nowIso())
       const candidates = await this.fetchCandidates()
       candidateListeners.forEach((listener) => listener(candidates))
@@ -159,6 +182,7 @@ export const syncService = {
     if (input.workerUrl)
       settingsService.set(SettingKey.WORKER_URL, input.workerUrl.replace(/\/+$/, ''))
     else settingsService.delete(SettingKey.WORKER_URL)
+    state.protocol = null
     if (input.syncToken)
       settingsService.set(SettingKey.SYNC_TOKEN, secureStorage.encrypt(input.syncToken))
     if (!input.workerUrl) settingsService.delete(SettingKey.SYNC_TOKEN)
@@ -167,9 +191,20 @@ export const syncService = {
     return this.getSettings()
   },
 
-  async test(): Promise<{ ok: boolean; message: string }> {
+  /**
+   * Tries the URL and token typed in the form before saving them. An empty token falls back
+   * to the stored one, as saveSettings does.
+   */
+  async test(input: { workerUrl: string; syncToken: string }): Promise<{
+    ok: boolean
+    message: string
+  }> {
+    const stored = settingsService.get(SettingKey.SYNC_TOKEN)
+    const token = input.syncToken || (stored ? secureStorage.decrypt(stored) : null)
+    if (!input.workerUrl) return { ok: false, message: 'Escribe la URL del Worker' }
+    if (!token) return { ok: false, message: 'Escribe el SYNC_TOKEN' }
     try {
-      await this.fetchCandidates()
+      await this.fetchCandidates({ url: input.workerUrl.replace(/\/+$/, ''), token })
       return { ok: true, message: 'Conexión correcta con el Worker' }
     } catch (error) {
       return {

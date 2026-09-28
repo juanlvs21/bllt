@@ -82,6 +82,16 @@
       </p>
       {#if status.lastError}
         <p class="text-destructive text-xs">{status.lastError}. Se reintentará solo.</p>
+      {:else if status.workerOutdated}
+        <p class="text-gold text-xs">
+          Tu Worker es de una versión anterior y algunos cambios esperan a que lo actualices.
+          <a
+            class="underline"
+            href="https://bllt.juanl.dev/docs/guias/actualizar-nube"
+            target="_blank"
+            rel="noreferrer">Cómo actualizarlo</a
+          >
+        </p>
       {:else if status.pending > 0 && status.lastSyncAt}
         <p class="text-muted-foreground text-xs">
           Último envío {formatRelative(status.lastSyncAt, now)}

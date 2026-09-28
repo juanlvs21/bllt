@@ -171,12 +171,44 @@ try {
   if (process.env.BLLT_E2E_WORKER) {
     await page.getByRole('tab', { name: 'Nube' }).click()
     await page.getByLabel('URL del Worker').fill(process.env.BLLT_E2E_WORKER)
+    await page.getByLabel('SYNC_TOKEN').fill('token-equivocado')
+    await page.getByRole('button', { name: 'Probar conexión' }).click()
+    await page.getByText('El SYNC_TOKEN no es válido').waitFor()
     await page.getByLabel('SYNC_TOKEN').fill(process.env.BLLT_E2E_TOKEN ?? 'test-token')
+    await page.getByRole('button', { name: 'Probar conexión' }).click()
+    await page.getByText('Conexión correcta con el Worker').waitFor()
+    step('probar conexión antes de guardar')
     await page.getByRole('button', { name: 'Guardar' }).click()
     await page.getByRole('button', { name: 'Inicio' }).click()
     await page.getByText(/Sincronizado hace/).waitFor({ timeout: 20_000 })
     await shot('10-synced')
     step('sincronizado con el Worker')
+
+    if (!process.env.BLLT_E2E_OLD_WORKER) {
+      // The PWA reads the synced business name from the Worker.
+      const { name } = await (await fetch(`${process.env.BLLT_E2E_WORKER}/api/business`)).json()
+      if (name !== 'Bodega La Esquina')
+        throw new Error(`La PWA no recibe el nombre del negocio sincronizado: ${name}`)
+      step('nombre del negocio en la PWA')
+    } else {
+      // A Worker from before the business entity: sync still works and the desktop says to update.
+      await page.getByText(/Tu Worker es de una versión anterior/).waitFor()
+      step('Worker anterior: sincroniza y avisa')
+    }
+
+    // Disconnect asks first; confirming clears the URL.
+    await page.getByRole('button', { name: 'Configuración' }).click()
+    await page.getByRole('tab', { name: 'Nube' }).click()
+    await page.getByRole('button', { name: 'Desconectar' }).click()
+    await page.getByRole('button', { name: 'Cancelar' }).click()
+    await page.getByRole('alertdialog').waitFor({ state: 'detached' })
+    if (!(await page.getByLabel('URL del Worker').inputValue()))
+      throw new Error('Cancelar borró la URL')
+    await page.getByRole('button', { name: 'Desconectar' }).click()
+    await page.getByRole('alertdialog').getByRole('button', { name: 'Desconectar' }).click()
+    await page.getByText('Nube desconectada').waitFor()
+    await page.getByRole('button', { name: 'Desconectar' }).waitFor({ state: 'detached' })
+    step('desconectar con confirmación')
   }
 
   // Logout asks first; the login shows the business logo.

@@ -22,10 +22,10 @@ Entra a [dash.cloudflare.com](https://dash.cloudflare.com/sign-up) y regístrate
 
 El asistente crea el Worker, la base D1 y la tarea programada. Te pedirá dos secretos:
 
-| Secreto | Qué poner |
-| --- | --- |
+| Secreto      | Qué poner                                                                        |
+| ------------ | -------------------------------------------------------------------------------- |
 | `SYNC_TOKEN` | Una clave larga al azar (por ejemplo, 40 letras y números). La pegarás en la PC. |
-| `JWT_SECRET` | Otra clave larga distinta. Sirve para las sesiones del teléfono. |
+| `JWT_SECRET` | Otra clave larga distinta. Sirve para las sesiones del teléfono.                 |
 
 Anota el `SYNC_TOKEN` antes de continuar.
 
@@ -35,22 +35,22 @@ Al terminar verás una dirección como `https://bllt-pwa.tu-usuario.workers.dev`
 
 ## 4. Pégala en la PC
 
-En Bllt: **Configuración → Nube**. Pega la URL y el `SYNC_TOKEN`, pulsa **Guardar** y luego **Probar conexión**.
+En Bllt: **Configuración → Nube**. Pega la URL y el `SYNC_TOKEN`, pulsa **Probar conexión** para comprobarlos y luego **Guardar**.
 
 ![Configuración, pestaña Nube](/capturas/14-cloud.png)
 
 En el inicio verás “Sincronizado hace 1 min”. Si la conexión cae, los cambios se acumulan y suben solos al volver.
 
-## 5. Pon el nombre de tu negocio en el teléfono (opcional)
+## 5. El nombre de tu negocio en el teléfono
 
-La app del teléfono muestra “Bllt” si no le dices otro nombre. Para que en la pantalla de inicio del teléfono aparezca el nombre de tu negocio:
+La app del teléfono usa el nombre que pusiste en la PC (**Configuración → Negocio**). Se sube con la primera sincronización, y si lo cambias en la PC, el teléfono lo muestra la próxima vez que abras la app con conexión. Antes de la primera sincronización verás “Bllt”.
 
-1. En Cloudflare abre tu Worker → **Settings** y busca, dentro de la sección **Build**, las variables de compilación (*Build variables and secrets*). No son las *Variables and Secrets* del Worker: esas solo existen mientras el Worker corre.
-2. Agrega la variable `BUSINESS_NAME` con el nombre (por ejemplo, `Bodega La Esquina`).
-3. Vuelve a desplegar: en **Deployments**, pulsa *Retry build* en el último, o haz cualquier cambio en tu repositorio.
-
-Es una variable **de compilación**, no un secreto del Worker: el nombre se escribe dentro de la app al construirla. Si ya instalaste la app en el teléfono, bórrala y vuelve a instalarla para ver el nombre nuevo en el icono.
+El nombre bajo el icono se fija al instalar la app: si lo cambias después, bórrala y vuelve a instalarla para verlo cambiado ahí.
 
 ## 6. Instala la app en el teléfono
 
 Sigue la guía [Instalar en el teléfono](/docs/guias/telefono).
+
+## Actualizaciones
+
+Tu repositorio no recibe solo las versiones nuevas de Bllt. Trae un botón para actualizarlo, que además corre solo cada semana: [Actualizar la nube](/docs/guias/actualizar-nube).

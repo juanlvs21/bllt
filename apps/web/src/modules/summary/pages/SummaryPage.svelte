@@ -15,7 +15,7 @@
   import WifiOffIcon from '@lucide/svelte/icons/wifi-off'
   import { onMount } from 'svelte'
   import { api, ApiError } from '../../../lib/api'
-  import { businessName } from '../../../lib/business'
+  import { business, loadBusiness } from '../../../lib/business.svelte'
   import { summaryCache } from '../../../lib/cache'
 
   let {
@@ -32,6 +32,8 @@
   async function load() {
     loading = true
     try {
+      // Refreshing also picks up a rename made on the desktop.
+      void loadBusiness()
       data = await api.summary()
       summaryCache.write(data)
       offline = false
@@ -54,8 +56,8 @@
 </script>
 
 <header class="flex items-center justify-between gap-3 py-2">
-  {#if businessName}
-    <p class="min-w-0 truncate text-lg font-bold">{businessName}</p>
+  {#if business.name}
+    <p class="min-w-0 truncate text-lg font-bold">{business.name}</p>
   {:else}
     <Logo size={28} />
   {/if}

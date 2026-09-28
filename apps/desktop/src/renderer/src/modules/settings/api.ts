@@ -15,7 +15,7 @@ export const settingsApi = {
   cloud: {
     get: () => unwrap(api.sync.getSettings()),
     save: (input: CloudSettingsInput) => unwrap(api.sync.saveSettings(input)),
-    test: () => unwrap(api.sync.test())
+    test: (input: CloudSettingsInput) => unwrap(api.sync.test(input))
   },
   backups: {
     list: () => unwrap(api.backups.list()),
