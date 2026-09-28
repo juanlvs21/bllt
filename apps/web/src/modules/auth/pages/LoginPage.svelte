@@ -2,7 +2,7 @@
   import type { WebUser } from '@bllt/shared'
   import { Button, Input, Label, Logo } from '@bllt/ui'
   import { api } from '../../../lib/api'
-  import { businessName } from '../../../lib/business'
+  import { business } from '../../../lib/business.svelte'
 
   let { onDone }: { onDone: (user: WebUser) => void } = $props()
 
@@ -28,7 +28,7 @@
 <div class="flex min-h-dvh flex-col">
   <div class="bg-primary text-primary-foreground rounded-b-[2rem] px-6 pt-16 pb-12">
     <div class="bg-card mb-8 inline-flex rounded-2xl px-3 py-2"><Logo size={30} /></div>
-    <h1 class="text-3xl font-bold">{businessName || 'Tu negocio'},<br />desde el teléfono.</h1>
+    <h1 class="text-3xl font-bold">{business.name || 'Tu negocio'},<br />desde el teléfono.</h1>
     <p class="text-primary-foreground/80 mt-2 text-sm">Entra con el mismo usuario de la PC.</p>
   </div>
   <form class="mx-auto w-full max-w-sm space-y-4 px-6 py-8" onsubmit={submit}>

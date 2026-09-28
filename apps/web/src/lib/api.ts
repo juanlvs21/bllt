@@ -27,6 +27,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
 }
 
 export const api = {
+  business: () => request<{ name: string }>('/business'),
   me: () => request<{ user: WebUser }>('/auth/me'),
   login: (username: string, password: string) =>
     request<{ user: WebUser }>('/auth/login', {

@@ -5,6 +5,9 @@ import { createDb, schema } from '../../core/db'
 
 type Statement = BatchItem<'sqlite'>
 
+/** cloud_meta key holding the business name the desktop synced. */
+export const BUSINESS_NAME_KEY = 'business_name'
+
 /** Rows per multi-row insert so each statement stays under D1's 100 bound parameters. */
 const ITEMS_PER_STATEMENT = 10
 
@@ -57,6 +60,15 @@ export function statementsFor(d1: D1Database, message: OutboxMessage): Statement
           .where(eq(schema.rateCandidates.id, candidateId))
       ]
     }
+    case 'BUSINESS': {
+      const value = message.payload.name
+      return [
+        db
+          .insert(schema.cloudMeta)
+          .values({ key: BUSINESS_NAME_KEY, value })
+          .onConflictDoUpdate({ target: schema.cloudMeta.key, set: { value } })
+      ]
+    }
     case 'SALE': {
       const { items, ...sale } = message.payload
       const { id, ...rest } = sale
@@ -85,6 +97,14 @@ export const syncRepository = {
     if (statements.length === 0) return
     const db = createDb(d1)
     await db.batch(statements as [Statement, ...Statement[]])
+  },
+  async meta(d1: D1Database, key: string): Promise<string | null> {
+    const row = await createDb(d1)
+      .select({ value: schema.cloudMeta.value })
+      .from(schema.cloudMeta)
+      .where(eq(schema.cloudMeta.key, key))
+      .get()
+    return row?.value ?? null
   },
   async touch(d1: D1Database, key: string, value: string): Promise<void> {
     await createDb(d1)

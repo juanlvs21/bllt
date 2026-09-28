@@ -1,0 +1,48 @@
+name: Update cloud
+
+# Brings this repo up to the latest Bllt cloud version. Cloudflare redeploys on the push that
+# follows (and applies the new D1 migrations). Run it from Actions → Update cloud → Run
+# workflow; it also runs once a week on its own.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 13 * * 1'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-cloud
+  cancel-in-progress: false
+
+jobs:
+  update:
+    # Not in Bllt's own repo, where the cloud branch is generated.
+    if: github.repository != 'juanlvs21/bllt'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version: 24
+      - name: Fetch the latest version
+        run: git clone --quiet --depth 1 --branch cloud https://github.com/juanlvs21/bllt.git "$RUNNER_TEMP/upstream"
+      - name: Apply it
+        env:
+          BLLT_TOOLS: ${{ runner.temp }}/tools
+        run: |
+          npm install --silent --prefix "$BLLT_TOOLS" jsonc-parser@3.3.1
+          node "$RUNNER_TEMP/upstream/scripts/update.mjs" "$RUNNER_TEMP/upstream" .
+      - name: Commit
+        run: |
+          git add -A
+          if git diff --cached --quiet; then
+            echo 'Ya tienes la última versión.' >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          version=$(cat .bllt-version)
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit --quiet -m "Update cloud to $version"
+          git push
+          echo "Actualizado a Bllt $version. Cloudflare lo despliega en un par de minutos." >> "$GITHUB_STEP_SUMMARY"

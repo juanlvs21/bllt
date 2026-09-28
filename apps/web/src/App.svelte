@@ -4,6 +4,7 @@
   import { ModeWatcher } from 'mode-watcher'
   import { onMount } from 'svelte'
   import { api, ApiError } from './lib/api'
+  import { loadBusiness } from './lib/business.svelte'
   import { summaryCache } from './lib/cache'
   import LoginPage from './modules/auth/pages/LoginPage.svelte'
   import SummaryPage from './modules/summary/pages/SummaryPage.svelte'
@@ -15,6 +16,7 @@
   let tab = $state<'summary' | 'rate'>('summary')
 
   onMount(async () => {
+    void loadBusiness()
     try {
       user = (await api.me()).user
       phase = 'app'
