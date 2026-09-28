@@ -144,6 +144,9 @@ export const rateService = {
       phone = null
     }
     if (input.candidateId) hide(input.candidateId)
+    // The internet rate on the table was seen and passed over too; otherwise, after taking the
+    // phone's rate, the older internet one would pop back up as a "new" suggestion.
+    if (internet) hide(internet.id)
     return row
   },
 
