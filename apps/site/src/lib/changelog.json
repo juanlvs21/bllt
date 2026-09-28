@@ -2,6 +2,33 @@
   "repo": "https://github.com/juanlvs21/bllt",
   "versions": [
     {
+      "version": "0.1.3",
+      "tag": "v0.1.3",
+      "date": "2026-09-28",
+      "url": "https://github.com/juanlvs21/bllt/releases/tag/v0.1.3",
+      "compareUrl": "https://github.com/juanlvs21/bllt/compare/v0.1.1...v0.1.3",
+      "commits": [
+        {
+          "sha": "5b9e64ac7d17199afa85b2e2fb3f1dc9f43f7c71",
+          "short": "5b9e64a",
+          "subject": "Versión 0.1.3",
+          "url": "https://github.com/juanlvs21/bllt/commit/5b9e64ac7d17199afa85b2e2fb3f1dc9f43f7c71"
+        },
+        {
+          "sha": "b4e5c4ed0237a59aea0c7576d6ea977dc2f93745",
+          "short": "b4e5c4e",
+          "subject": "Al aceptar una tasa sugerida el aviso se cierra y no vuelve a proponer la tasa anterior de internet - Video de demostración del sitio regenerado",
+          "url": "https://github.com/juanlvs21/bllt/commit/b4e5c4ed0237a59aea0c7576d6ea977dc2f93745"
+        },
+        {
+          "sha": "77dac50ba190f8560cbb8a2ee723c0e018be89a7",
+          "short": "77dac50",
+          "subject": "Documentación de arquitectura e instrucciones para agentes: ARCHITECTURE.md con el diseño actual (sync, tasa, auth, modelo de datos, despliegue), AGENTS.md con convenciones y dónde buscar la información, CLAUDE.md que lo importa y enlaces desde el README",
+          "url": "https://github.com/juanlvs21/bllt/commit/77dac50ba190f8560cbb8a2ee723c0e018be89a7"
+        }
+      ]
+    },
+    {
       "version": "0.1.1",
       "tag": "v0.1.1",
       "date": "2026-09-27",
