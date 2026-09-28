@@ -64,6 +64,8 @@ El botón despliega la rama `cloud`, que CI publica desde el último tag estable
 
 ## Monorepo
 
+Cómo encaja cada pieza y por qué: [ARCHITECTURE.md](ARCHITECTURE.md).
+
 ```
 apps/
   desktop/   Electron + electron-vite + Svelte (fuente de verdad, SQLite)
@@ -96,6 +98,8 @@ pnpm install
 | `pnpm --filter @bllt/desktop build:win` | Instalador NSIS |
 
 ## Decisiones clave
+
+Resumen de lo esencial. El detalle (sync, tasa, autenticación, modelo de datos y despliegue) está en [ARCHITECTURE.md](ARCHITECTURE.md). Si trabajas con un agente de código, las convenciones del repo están en [AGENTS.md](AGENTS.md).
 
 - **Dinero:** USD en centavos (`INTEGER`), tasa como entero escalado a 4 decimales. Ganancia de una línea = `qty × (price − cost)`; en Bs se multiplica por la tasa de su propia venta. Se calcula solo en `@bllt/shared` (`summarizeProfit`), así el escritorio y el teléfono muestran el mismo número.
 - **Hora:** todo “día de negocio” se calcula en UTC−4 desde UTC con `businessDate()`, nunca con la zona de la PC.
