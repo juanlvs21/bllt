@@ -20,6 +20,7 @@
     "build:linux": "pnpm build && electron-builder --linux",
     "test:e2e": "electron-vite build && node e2e/smoke.mjs",
     "capturas": "electron-vite build && node e2e/capturas.mjs",
+    "video": "electron-vite build && node e2e/video.mjs",
     "seed:demo": "ELECTRON_RUN_AS_NODE=1 electron scripts/seed-demo.mjs"
   },
   "dependencies": {

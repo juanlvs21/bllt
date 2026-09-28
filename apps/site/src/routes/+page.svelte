@@ -104,6 +104,30 @@
     </div>
   </section>
 
+  <section class="mx-auto max-w-5xl px-4 pb-16 lg:pb-24">
+    <h2 class="text-center text-2xl font-bold">Así se usa</h2>
+    <p class="text-muted-foreground mx-auto mt-2 max-w-2xl text-center">
+      Entrar, confirmar la tasa del día, registrar un producto y venderlo con su comprobante en PDF.
+      Todo en menos de un minuto.
+    </p>
+    <video
+      class="ring-foreground/10 mt-8 w-full rounded-2xl shadow-2xl ring-1"
+      width="1366"
+      height="820"
+      poster="/video/demo.jpg"
+      autoplay
+      muted
+      loop
+      playsinline
+      controls
+      preload="metadata"
+      aria-label="Demostración de Bllt: inicio de sesión, tasa del día, nuevo producto y venta con comprobante en PDF"
+    >
+      <source src="/video/demo.webm" type="video/webm" />
+      <source src="/video/demo.mp4" type="video/mp4" />
+    </video>
+  </section>
+
   <section class="bg-card border-y">
     <div class="mx-auto grid max-w-6xl gap-8 px-4 py-16 sm:grid-cols-2 lg:grid-cols-3">
       {#each features as f (f.title)}
