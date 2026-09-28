@@ -20,7 +20,9 @@ on:
 permissions:
   contents: write
 
-concurrency: cloud-branch
+concurrency:
+  group: cloud-branch
+  cancel-in-progress: true
 
 jobs:
   publish:
