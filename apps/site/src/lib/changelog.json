@@ -2,6 +2,21 @@
   "repo": "https://github.com/juanlvs21/bllt",
   "versions": [
     {
+      "version": "0.1.1",
+      "tag": "v0.1.1",
+      "date": "2026-09-27",
+      "url": "https://github.com/juanlvs21/bllt/releases/tag/v0.1.1",
+      "compareUrl": "https://github.com/juanlvs21/bllt/compare/v0.1.0...v0.1.1",
+      "commits": [
+        {
+          "sha": "773069d41606a4dadc3ef6d447ba4dd3de7ff14d",
+          "short": "773069d",
+          "subject": "Releases publicados (no borrador) y push a la rama cloud con CLOUD_BRANCH_TOKEN",
+          "url": "https://github.com/juanlvs21/bllt/commit/773069d41606a4dadc3ef6d447ba4dd3de7ff14d"
+        }
+      ]
+    },
+    {
       "version": "0.1.0",
       "tag": "v0.1.0",
       "date": "2026-09-27",

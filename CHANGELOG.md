@@ -2,6 +2,12 @@
 
 Cambios de cada versión de Bllt. Este archivo se genera solo al publicar una versión; no lo edites a mano.
 
+## [0.1.1](https://github.com/juanlvs21/bllt/releases/tag/v0.1.1) · 2026-09-27
+
+- Releases publicados (no borrador) y push a la rama cloud con CLOUD\_BRANCH\_TOKEN ([773069d](https://github.com/juanlvs21/bllt/commit/773069d41606a4dadc3ef6d447ba4dd3de7ff14d))
+
+[Ver todos los cambios](https://github.com/juanlvs21/bllt/compare/v0.1.0...v0.1.1)
+
 ## [0.1.0](https://github.com/juanlvs21/bllt/releases/tag/v0.1.0) · 2026-09-27
 
 - Rama cloud solo desde tags: el último tag estable vX.Y.Z la publica, un push a main solo comprueba que compila - Tags viejos o de prueba (v1.1.5 tras v1.2.0, v1.3.0-beta) no reemplazan lo publicado; a mano se republica el último tag - .bllt-version guarda el tag, así Update cloud actualiza a "Update cloud to vX.Y.Z" - README y guía de actualizar la nube lo explican ([beaf124](https://github.com/juanlvs21/bllt/commit/beaf1242f649c470abdfb13e3211a6ece6635c11))
