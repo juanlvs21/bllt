@@ -1,6 +1,6 @@
 name: Release desktop
 
-# Builds the Windows NSIS installer and publishes it to GitHub Releases.
+# Builds the Windows NSIS installer and publishes it to GitHub Releases (via gh, see below).
 # electron-updater reads those releases (with blockmaps for differential downloads).
 # Before that, the changelog job commits CHANGELOG.md and the site's /novedades data
 # to main (Workers Builds redeploys the site) and hands the version's notes to the release.
@@ -57,11 +57,20 @@ jobs:
         run: |
           cd apps/desktop
           npm pkg set version="${GITHUB_REF_NAME#v}"
-      - name: Build and publish
+      - name: Build
         working-directory: apps/desktop
         shell: bash
-        run: >
-          pnpm build && pnpm exec electron-builder --win --publish always
-          -c.releaseInfo.releaseNotesFile="$GITHUB_WORKSPACE/release-notes.md"
+        run: pnpm build && pnpm exec electron-builder --win --publish never
+      # electron-builder uploads assets in parallel and, on a fresh tag, each upload can create
+      # its own release (duplicates with the .exe split from latest.yml). One release, then upload.
+      # latest.yml goes last so electron-updater never sees it before the installer exists.
+      - name: Publish release
+        working-directory: apps/desktop
+        shell: bash
+        run: |
+          gh release create "$GITHUB_REF_NAME" --verify-tag --title "${GITHUB_REF_NAME#v}" \
+            --notes-file "$GITHUB_WORKSPACE/release-notes.md"
+          gh release upload "$GITHUB_REF_NAME" dist/Bllt-*-setup.exe dist/Bllt-*-setup.exe.blockmap
+          gh release upload "$GITHUB_REF_NAME" dist/latest.yml
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
