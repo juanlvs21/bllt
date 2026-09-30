@@ -63,7 +63,7 @@ if (!app.requestSingleInstanceLock()) {
     app.setAboutPanelOptions({
       applicationName: 'Bllt',
       credits: 'Inventario en dólares y bolívares',
-      copyright: 'Copyright © 2026 Juan Villarroel'
+      copyright: 'Copyright © 2026 juanl.dev'
     })
     // Packaged builds get the icon from the bundle; in dev the Dock shows Electron's.
     if (is.dev) app.dock?.setIcon(icon)

@@ -1,6 +1,6 @@
 appId: dev.juanl.bllt
 productName: Bllt
-copyright: Copyright © 2026 Juan Villarroel
+copyright: Copyright © 2026 juanl.dev
 directories:
   buildResources: build
   output: dist
