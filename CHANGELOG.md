@@ -2,6 +2,14 @@
 
 Cambios de cada versión de Bllt. Este archivo se genera solo al publicar una versión; no lo edites a mano.
 
+## [0.1.4](https://github.com/juanlvs21/bllt/releases/tag/v0.1.4) · 2026-09-30
+
+- Versión 0.1.4 ([2313b28](https://github.com/juanlvs21/bllt/commit/2313b28923218089cac844bf5bb5c5b196c0cf30))
+- El instalador muestra juanl.dev como editor en lugar del nombre del autor ([4723625](https://github.com/juanlvs21/bllt/commit/4723625feac80366e92d302fc56d5b84b155631a))
+- infra: modify release workflow ([29a1a18](https://github.com/juanlvs21/bllt/commit/29a1a1868726a42ca8aa53b7d71513e1551cf918))
+
+[Ver todos los cambios](https://github.com/juanlvs21/bllt/compare/v0.1.3...v0.1.4)
+
 ## [0.1.3](https://github.com/juanlvs21/bllt/releases/tag/v0.1.3) · 2026-09-30
 
 - infra: modify release workflow ([60d453b](https://github.com/juanlvs21/bllt/commit/60d453bf18c12f3ae4e5615648aa5dc149c1a81f))
