@@ -2,8 +2,9 @@
 
 Cambios de cada versión de Bllt. Este archivo se genera solo al publicar una versión; no lo edites a mano.
 
-## [0.1.3](https://github.com/juanlvs21/bllt/releases/tag/v0.1.3) · 2026-09-28
+## [0.1.3](https://github.com/juanlvs21/bllt/releases/tag/v0.1.3) · 2026-09-30
 
+- infra: modify release workflow ([60d453b](https://github.com/juanlvs21/bllt/commit/60d453bf18c12f3ae4e5615648aa5dc149c1a81f))
 - Versión 0.1.3 ([5b9e64a](https://github.com/juanlvs21/bllt/commit/5b9e64ac7d17199afa85b2e2fb3f1dc9f43f7c71))
 - Al aceptar una tasa sugerida el aviso se cierra y no vuelve a proponer la tasa anterior de internet - Video de demostración del sitio regenerado ([b4e5c4e](https://github.com/juanlvs21/bllt/commit/b4e5c4ed0237a59aea0c7576d6ea977dc2f93745))
 - Documentación de arquitectura e instrucciones para agentes: ARCHITECTURE.md con el diseño actual (sync, tasa, auth, modelo de datos, despliegue), AGENTS.md con convenciones y dónde buscar la información, CLAUDE.md que lo importa y enlaces desde el README ([77dac50](https://github.com/juanlvs21/bllt/commit/77dac50ba190f8560cbb8a2ee723c0e018be89a7))
