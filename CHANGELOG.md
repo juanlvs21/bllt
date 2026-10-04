@@ -2,6 +2,13 @@
 
 Cambios de cada versión de Bllt. Este archivo se genera solo al publicar una versión; no lo edites a mano.
 
+## [0.1.5](https://github.com/juanlvs21/bllt/releases/tag/v0.1.5) · 2026-10-04
+
+- Versión 0.1.5 ([e1f4ece](https://github.com/juanlvs21/bllt/commit/e1f4ece0d2d2b25d32f440b51b7d0d81373b8c4c))
+- Varias PCs con los mismos datos a través del Worker ([35af602](https://github.com/juanlvs21/bllt/commit/35af602b49a0a91e10dc5f4b81fe9bacc406b27f))
+
+[Ver todos los cambios](https://github.com/juanlvs21/bllt/compare/v0.1.4...v0.1.5)
+
 ## [0.1.4](https://github.com/juanlvs21/bllt/releases/tag/v0.1.4) · 2026-09-30
 
 - Versión 0.1.4 ([2313b28](https://github.com/juanlvs21/bllt/commit/2313b28923218089cac844bf5bb5c5b196c0cf30))
