@@ -1,6 +1,6 @@
 {
   "name": "@bllt/desktop",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Bllt: inventario, ventas y clientes en dólares y bolívares",
   "main": "./out/main/index.js",
   "author": "juanl.dev <bllt@juanl.dev>",
