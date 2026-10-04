@@ -143,6 +143,7 @@ try {
   // Off camera: first run with the owner, then the demo store without today's rate.
   let page
   ;({ app, page } = await launch(false))
+  await page.getByRole('button', { name: 'Usar solo en esta PC' }).click()
   await page.getByLabel('Nombre del negocio').fill('Bodega La Esquina')
   await page.getByLabel('RIF (opcional)').fill('J-12345678-9')
   await page.locator('#logo').setInputFiles(join(root, 'build', 'icon.png'))
@@ -151,8 +152,7 @@ try {
   await page.getByLabel('Usuario').fill('dueno')
   await page.getByLabel('Contraseña', { exact: true }).fill('secreto123')
   await page.getByLabel('Repite la contraseña').fill('secreto123')
-  await page.getByRole('button', { name: 'Continuar' }).click()
-  await page.getByRole('button', { name: 'Configurar después' }).click()
+  await page.getByRole('button', { name: 'Crear cuenta' }).click()
   await page.getByRole('checkbox').click()
   await page.getByRole('button', { name: 'Entrar a Bllt' }).click()
   await page.getByText('Confirma la tasa de hoy').waitFor()
@@ -244,7 +244,7 @@ try {
   await click(page, page.getByRole('button', { name: 'Confirmar venta' }))
   await page
     .getByRole('dialog')
-    .getByText(/^Venta #\d+$/)
+    .getByText(/^Venta [A-Z]-\d+$/)
     .waitFor()
   await pause(page, 1600)
   await click(page, page.getByRole('button', { name: 'Imprimir' }))

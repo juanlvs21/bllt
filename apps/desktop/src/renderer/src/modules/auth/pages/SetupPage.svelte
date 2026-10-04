@@ -9,9 +9,10 @@
   import AuthLayout from '../components/AuthLayout.svelte'
   import RecoveryCode from '../components/RecoveryCode.svelte'
 
-  let { onDone }: { onDone: (user: SessionUser) => void } = $props()
+  let { onDone, onJoined }: { onDone: (user: SessionUser) => void; onJoined: () => void } = $props()
 
-  let step = $state<1 | 2 | 3 | 4>(1)
+  /** 0: connect or go local, 1: business, 2: owner, 3: recovery code. */
+  let step = $state<0 | 1 | 2 | 3>(0)
   let businessName = $state('')
   let rif = $state('')
   let logo = $state<string | null>(null)
@@ -20,6 +21,10 @@
   let confirm = $state('')
   let workerUrl = $state('')
   let syncToken = $state('')
+  let deviceName = $state('')
+  let joining = $state(false)
+  let downloaded = $state(0)
+  let remaining = $state<number | null>(null)
   let busy = $state(false)
   let recoveryCode = $state('')
   let createdUser = $state<SessionUser | null>(null)
@@ -45,18 +50,61 @@
     if (username.trim().length < 3) error = 'El usuario debe tener al menos 3 caracteres'
     else if (password.length < 8) error = 'La contraseña debe tener al menos 8 caracteres'
     else if (password !== confirm) error = 'Las contraseñas no coinciden'
-    else step = 3
+    else void finish()
   }
 
-  async function finish(skipCloud: boolean) {
+  /** Tries the Worker: a business that already has data is joined, an empty one is set up. */
+  async function connect(event: SubmitEvent) {
+    event.preventDefault()
+    error = ''
+    busy = true
+    const input = { workerUrl: workerUrl.trim(), syncToken: syncToken.trim(), deviceName }
+    const status = await attempt(() => authApi.inspectCloud(input))
+    if (!status) {
+      busy = false
+      return
+    }
+    if (!status.hasData) {
+      busy = false
+      step = 1
+      return
+    }
+    if (!status.complete) {
+      busy = false
+      error =
+        'La PC original todavía está subiendo sus datos. Espera a que termine e inténtalo de nuevo.'
+      return
+    }
+    joining = true
+    const off = window.api.events.onSyncStatus((s) => {
+      downloaded = s.downloaded
+      remaining = s.pendingDown
+    })
+    const joined = await attempt(() => authApi.joinCloud(input))
+    off()
+    joining = false
+    busy = false
+    if (joined === undefined) return
+    void businessStore.refresh()
+    onJoined()
+  }
+
+  function goLocal() {
+    workerUrl = ''
+    syncToken = ''
+    step = 1
+  }
+
+  async function finish() {
     busy = true
     const result = await attempt(() =>
       authApi.setup({
         business: { name: businessName, rif, logo },
         username: username.trim(),
         password,
-        workerUrl: skipCloud ? '' : workerUrl.trim(),
-        syncToken: skipCloud ? '' : syncToken.trim()
+        workerUrl: workerUrl.trim(),
+        syncToken: syncToken.trim(),
+        deviceName
       })
     )
     busy = false
@@ -64,13 +112,60 @@
     recoveryCode = result.recoveryCode
     createdUser = result.user
     void businessStore.refresh()
-    step = 4
+    step = 3
   }
 </script>
 
 <AuthLayout>
-  <p class="text-primary mb-1 text-sm font-semibold">Paso {step} de 4</p>
-  {#if step === 1}
+  {#if step > 0}
+    <p class="text-primary mb-1 text-sm font-semibold">Paso {step} de 3</p>
+  {/if}
+  {#if step === 0}
+    <h1 class="mb-2 text-2xl font-bold">Bienvenido a Bllt</h1>
+    <p class="text-muted-foreground mb-6 text-sm">
+      Si tu negocio ya usa Bllt en otra PC, conéctala al Worker de Cloudflare y se cargarán todos
+      los datos, sin repetir la configuración. Si es el primero, puedes conectarlo ahora o usar Bllt
+      solo en esta PC.
+    </p>
+    {#if joining}
+      <p class="text-sm font-medium">Descargando los datos del negocio…</p>
+      <p class="text-muted-foreground mt-1 text-sm">
+        {downloaded} cambios descargados{#if remaining}
+          · faltan {remaining}{/if}
+      </p>
+    {:else}
+      <form class="space-y-4" onsubmit={connect}>
+        <div class="space-y-1.5">
+          <Label for="url">URL del Worker</Label>
+          <Input
+            id="url"
+            class="h-10"
+            placeholder="https://mi-negocio.workers.dev"
+            bind:value={workerUrl}
+            autofocus
+          />
+        </div>
+        <div class="space-y-1.5">
+          <Label for="token">SYNC_TOKEN</Label>
+          <Input id="token" class="h-10" type="password" bind:value={syncToken} />
+        </div>
+        <div class="space-y-1.5">
+          <Label for="device">Nombre de esta PC</Label>
+          <Input id="device" class="h-10" placeholder="Caja 2" bind:value={deviceName} />
+        </div>
+        {#if error}<p class="text-destructive text-sm">{error}</p>{/if}
+        <Button
+          type="submit"
+          size="lg"
+          class="h-11 w-full rounded-full"
+          disabled={busy || !workerUrl.trim() || !syncToken.trim() || !deviceName.trim()}
+        >
+          Conectar
+        </Button>
+        <Button variant="link" class="px-0" onclick={goLocal}>Usar solo en esta PC</Button>
+      </form>
+    {/if}
+  {:else if step === 1}
     <h1 class="mb-2 text-2xl font-bold">Bienvenido a Bllt</h1>
     <p class="text-muted-foreground mb-6 text-sm">
       ¿Cómo se llama tu negocio? El nombre y el logo aparecen en el menú y en los comprobantes.
@@ -132,50 +227,11 @@
         />
       </div>
       {#if error}<p class="text-destructive text-sm">{error}</p>{/if}
-      <Button type="submit" size="lg" class="h-11 w-full rounded-full">Continuar</Button>
+      <Button type="submit" size="lg" class="h-11 w-full rounded-full" disabled={busy}>
+        Crear cuenta
+      </Button>
       <Button variant="link" class="px-0" onclick={() => ((step = 1), (error = ''))}>Volver</Button>
     </form>
-  {:else if step === 3}
-    <h1 class="mb-2 text-2xl font-bold">Nube (opcional)</h1>
-    <p class="text-muted-foreground mb-6 text-sm">
-      Si desplegaste tu Worker de Cloudflare, pega aquí su URL y el SYNC_TOKEN para ver el resumen
-      desde el teléfono. Puedes hacerlo después en Configuración.
-    </p>
-    <div class="space-y-4">
-      <div class="space-y-1.5">
-        <Label for="url">URL del Worker</Label>
-        <Input
-          id="url"
-          class="h-10"
-          placeholder="https://mi-negocio.workers.dev"
-          bind:value={workerUrl}
-        />
-      </div>
-      <div class="space-y-1.5">
-        <Label for="token">SYNC_TOKEN</Label>
-        <Input id="token" class="h-10" type="password" bind:value={syncToken} />
-      </div>
-      <div class="flex gap-3 pt-2">
-        <Button
-          variant="outline"
-          size="lg"
-          class="h-11 flex-1 rounded-full"
-          disabled={busy}
-          onclick={() => finish(true)}
-        >
-          Configurar después
-        </Button>
-        <Button
-          size="lg"
-          class="h-11 flex-1 rounded-full"
-          disabled={busy || !workerUrl.trim() || !syncToken.trim()}
-          onclick={() => finish(false)}
-        >
-          Guardar y seguir
-        </Button>
-      </div>
-      <Button variant="link" class="px-0" onclick={() => (step = 2)}>Volver</Button>
-    </div>
   {:else}
     <h1 class="mb-2 text-2xl font-bold">Código de recuperación</h1>
     <p class="text-muted-foreground mb-6 text-sm">

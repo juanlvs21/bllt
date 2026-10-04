@@ -4,6 +4,7 @@
   import BanIcon from '@lucide/svelte/icons/ban'
   import type { SaleDto } from '../../../../../types/api'
   import { attempt } from '../../../lib/api'
+  import { formatSaleNumber } from '../../../lib/format'
   import { session } from '../../../lib/session.svelte'
   import { salesApi } from '../api'
   import InvoiceBody from './InvoiceBody.svelte'
@@ -58,7 +59,11 @@
 <AlertDialog.Root bind:open={confirmVoid}>
   <AlertDialog.Content>
     <AlertDialog.Header>
-      <AlertDialog.Title>¿Anular la venta #{sale?.number}?</AlertDialog.Title>
+      <AlertDialog.Title
+        >¿Anular la venta {sale
+          ? formatSaleNumber(sale.series, sale.number)
+          : ''}?</AlertDialog.Title
+      >
       <AlertDialog.Description>
         La venta queda registrada como anulada, deja de contar en las ganancias y los productos
         vuelven al inventario. No se puede deshacer.

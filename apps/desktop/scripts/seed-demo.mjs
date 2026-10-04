@@ -372,6 +372,18 @@ const insertProduct = db.prepare(
   `insert into products (id, code, name, stock, cost_cents, price_cents, active, updated_at)
    values (@id, @code, @name, @stock, @costCents, @priceCents, 1, @updatedAt)`
 )
+// The stock of a product is the sum of its movements; the demo shelves start from the final stock.
+const insertMovement = db.prepare(
+  `insert into stock_movements (id, product_id, delta, reason, ref_id, device_id, created_at)
+   values (?, ?, ?, 'INITIAL', null, ?, ?)`
+)
+const deviceId = (() => {
+  const row = db.prepare("select value from settings where key = 'device_id'").get()
+  if (row) return row.value
+  const id = randomUUID()
+  db.prepare("insert into settings (key, value) values ('device_id', ?)").run(id)
+  return id
+})()
 const insertCustomer = db.prepare(
   `insert into customers (id, name, document, phone, created_at, updated_at)
    values (@id, @name, @document, @phone, @createdAt, @updatedAt)`
@@ -395,6 +407,7 @@ db.transaction(() => {
     for (const table of [
       'sale_items',
       'sales',
+      'stock_movements',
       'products',
       'customers',
       'exchange_rates',
@@ -402,7 +415,10 @@ db.transaction(() => {
     ])
       db.prepare(`delete from ${table}`).run()
   }
-  for (const p of products) insertProduct.run({ ...p, updatedAt: nowIso })
+  for (const p of products) {
+    insertProduct.run({ ...p, updatedAt: nowIso })
+    if (p.stock !== 0) insertMovement.run(randomUUID(), p.id, p.stock, deviceId, nowIso)
+  }
   for (const c of customers) insertCustomer.run(c)
   for (const [date, rate] of rates) {
     const confirmedAt = businessInstant(date, 7.5 + rand()).toISOString()

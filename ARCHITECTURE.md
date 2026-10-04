@@ -4,22 +4,23 @@ Este documento explica cómo está construido Bllt y por qué. Está pensado par
 
 ## Qué es y qué no es
 
-Bllt (se lee “billete”) es una app de escritorio para que un negocio pequeño en Venezuela lleve inventario, ventas y clientes en USD, guardando la tasa BCV de cada venta. Funciona 100% sin internet. La nube es opcional y sirve para ver el resumen del día y sugerir la tasa desde el teléfono.
+Bllt (se lee “billete”) es una app de escritorio para que un negocio pequeño en Venezuela lleve inventario, ventas y clientes en USD, guardando la tasa BCV de cada venta. Funciona 100% sin internet. La nube es opcional y sirve para que varias PCs del mismo negocio compartan sus datos, ver el resumen del día y sugerir la tasa desde el teléfono.
 
 **Hace:** productos con costo y precio en USD, confirmación diaria de la tasa (Bs por USD), ventas con o sin cliente que descuentan inventario, comprobante en PDF, dashboard de ganancias del día y del mes, usuarios con roles, respaldos automáticos y exportación a Excel o CSV.
 
-**No hace:** factura fiscal ni integración con el SENIAT, cobros ni pasarelas de pago, ni multi-tienda. Cada instalación es un solo negocio.
+**No hace:** factura fiscal ni integración con el SENIAT, cobros ni pasarelas de pago, ni multi-tienda. Un negocio puede usar varias PCs, pero todas comparten los mismos datos.
 
 Toda la app trabaja en hora de Venezuela (UTC−4, sin horario de verano).
 
 ## Vista general
 
-El escritorio es la fuente de verdad y nunca depende de internet. El Worker es un espejo opcional: recibe copias de los datos y propone la tasa del día, pero el escritorio nunca la aplica sin que un usuario la confirme.
+Cada PC funciona sola y es la fuente de verdad de lo que ella registra: nunca depende de internet para vender. El Worker es el punto de encuentro: cada PC le sube sus cambios y baja los de las otras. También propone la tasa del día, pero el escritorio nunca la aplica sin que un usuario la confirme.
 
 ```mermaid
 flowchart LR
-  subgraph PC["PC del negocio"]
-    D["Escritorio<br/>Electron + SQLite"]
+  subgraph NEG["Negocio"]
+    A["PC A (serie A)<br/>Electron + SQLite"]
+    B["PC B (serie B)<br/>Electron + SQLite"]
   end
   subgraph CF["Cloudflare (opcional, una cuenta por negocio)"]
     W["Worker<br/>Hono + D1 + cron"]
@@ -28,69 +29,17 @@ flowchart LR
   T["Teléfono"]
   API["ve.dolarapi.com<br/>bcv.org.ve"]
 
-  D -- "outbox: ventas, productos,<br/>clientes, usuarios, tasas" --> W
-  W -- "tasas sugeridas" --> D
+  A -- "push: outbox" --> W
+  W -- "pull: lo que hicieron las otras PCs" --> A
+  B -- "push" --> W
+  W -- "pull" --> B
   W -- "cron cada 6 h" --> API
-  D -. "sin Worker: consulta directa" .-> API
+  A -. "sin Worker: consulta directa" .-> API
   T -- "login, resumen,<br/>sugerir tasa" --> P
   P --> W
 ```
 
-Si la conexión cae, el outbox acumula los cambios y los sube cuando vuelve. Sin Worker configurado, el escritorio consulta la tasa directamente a las APIs públicas o el usuario la escribe a mano.
-
-## Monorepo
-
-Un solo repositorio con workspaces de **pnpm**, todo en TypeScript. El contrato del sync, el esquema de la base y las reglas de dinero se escriben una sola vez en `packages/shared`.
-
-```
-apps/
-  desktop/   Electron + electron-vite + Svelte. Fuente de verdad (SQLite)
-  worker/    Cloudflare Worker: Hono + D1 + cron. Sirve el build de apps/web
-  web/       PWA en Svelte + Vite (sin SvelteKit): login, resumen y sugerir tasa
-  site/      SvelteKit estático: landing y docs en bllt.juanl.dev
-packages/
-  shared/    @bllt/shared: enums, Zod, esquema Drizzle, dinero, hora, sync, ganancias, contraseñas
-  ui/        @bllt/ui: componentes shadcn-svelte y piezas de marca
-assets/brand/  logo e íconos (todos los derechos reservados)
-scripts/       changelog y generación de la rama cloud
-```
-
-| Paquete        | Qué contiene                                                                                                                                                                           | Lo usan                  |
-| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------ |
-| `@bllt/shared` | Enums del dominio, esquemas Zod, esquema Drizzle, centavos y tasa escalada, `businessDate()` y rangos en UTC−4, contrato del sync, `summarizeProfit`, PBKDF2, proveedores de tasa      | desktop, worker, web, ui |
-| `@bllt/ui`     | Componentes de shadcn-svelte, piezas de marca (`Amount`, `MoneyInput`, `RateInput`, `SummaryCards`, `DateRangePicker`, `Pagination`, `Logo`) y el CSS base con los tokens de la paleta | desktop, web, site       |
-
-Los dos paquetes internos son `"private": true` y nunca se publican en npm. `apps/web` y `apps/site` se despliegan por separado: `web` va dentro del Worker de cada negocio y `site` es el sitio oficial del proyecto.
-
-### Organización por módulos
-
-Cada app se divide en módulos verticales por dominio, con carpetas transversales fijas:
-
-```
-src/
-├── core/      arranque, configuración, conexión a la base, errores, sesión
-├── libs/      envoltorios de APIs de terceros (updater, safeStorage, proveedores de tasa)
-├── utils/     helpers puros sin conocimiento del dominio
-└── modules/
-    └── <dominio>/
-        ├── <dominio>.repository.ts   queries de este módulo
-        ├── <dominio>.service.ts      reglas de negocio
-        └── <dominio>.ipc.ts          adaptador (routes.ts en el Worker)
-```
-
-| Capa                                  | Responsabilidad                                                 | No debe                            |
-| ------------------------------------- | --------------------------------------------------------------- | ---------------------------------- |
-| Adaptador (`*.ipc.ts`, `*.routes.ts`) | Validar la entrada con Zod y llamar al service                  | Tener reglas de negocio ni queries |
-| Service                               | Reglas: stock, tasa confirmada, permisos por rol, transacciones | Importar Drizzle                   |
-| Repository                            | Queries y escrituras de su módulo                               | Llamar a otros módulos             |
-
-Un módulo usa a otro solo a través de su service, nunca de su repository. El renderer del escritorio y la PWA siguen la misma idea con `modules/<dominio>/{pages, components, stores}`.
-
-Módulos del escritorio (`apps/desktop/src/main/modules`): `app`, `backups`, `business`, `customers`, `dashboard`, `exports`, `products`, `rates`, `sales`, `settings`, `sync` y `users`. Módulos del Worker (`apps/worker/src/modules`): `auth`, `pwa`, `rates`, `summary` y `sync`.
-
-### Componentes de UI
-
-Las tres interfaces usan [shadcn-svelte](https://shadcn-svelte.com) (Bits UI con Tailwind). El CLI copia cada componente a `packages/ui/src/components`, así que el código se puede leer y ajustar. El tema mapea las variables de shadcn a la paleta de la marca en `packages/ui/src/styles/app.css`, en variante clara y oscura.
+Si la conexión cae, cada PC acumula sus cambios en el outbox y los sube al volver, y baja lo que se perdió. Sin Worker configurado, el escritorio consulta la tasa directamente a las APIs públicas o el usuario la escribe a mano.
 
 Antes de crear un componente se revisa si existe en shadcn-svelte, y si no, si hay una primitiva de Bits UI sobre la cual construirlo. Solo se escribe desde cero cuando ninguno lo cubre, y vive en `@bllt/ui` si lo usa más de una app.
 
@@ -99,22 +48,27 @@ Antes de crear un componente se revisa si existe en shadcn-svelte, y si no, si h
 El esquema está definido con Drizzle en `packages/shared/src/schema` y es el mismo en SQLite (escritorio) y D1 (nube):
 
 - `schema/index.ts`: las tablas compartidas.
-- `schema/desktop.ts`: además `outbox` y `settings`.
-- `schema/cloud.ts`: además `rate_candidates`, `cloud_meta` y `login_attempts`.
+- `schema/desktop.ts`: además `outbox`, `settings`, `devices` y `sync_conflicts`.
+- `schema/cloud.ts`: además `devices` (con el hash del token), `changes`, `rate_candidates`, `cloud_meta` y `login_attempts`.
 
-| Tabla             | Dónde      | Notas                                                                                                                                |
-| ----------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `users`           | ambas      | Hash PBKDF2 con `salt` e `iterations`. Roles `ADMIN` y `EMPLOYEE`. Se desactiva, nunca se borra.                                     |
-| `products`        | ambas      | Costo y precio actuales en centavos. El histórico vive en las líneas de venta.                                                       |
-| `customers`       | ambas      | Nombre, cédula o RIF y teléfono. Opcional en la venta.                                                                               |
-| `exchange_rates`  | ambas      | Una fila por día de negocio, y solo cuando un usuario la confirma. `source`: `WORKER`, `PUBLIC_API`, `MANUAL` o `WEB`.               |
-| `sales`           | ambas      | La venta es la factura. Número correlativo local, `rate` del momento, `status` `COMPLETED` o `VOIDED`. Sin `customer_id` es anónima. |
-| `sale_items`      | ambas      | Copia del código, nombre, precio y costo del producto al vender, así las ganancias pasadas nunca cambian.                            |
-| `outbox`          | escritorio | Cambios pendientes de subir (`sent_at` nulo).                                                                                        |
-| `settings`        | escritorio | Datos del negocio, URL del Worker, `SYNC_TOKEN` cifrado, carpeta de respaldos, hash del código de recuperación.                      |
-| `rate_candidates` | nube       | Tasas propuestas por el cron o el teléfono, con la decisión que tomó el escritorio.                                                  |
-| `cloud_meta`      | nube       | Clave/valor: nombre del negocio, hora del último sync.                                                                               |
-| `login_attempts`  | nube       | Intentos fallidos de login, para el límite de intentos.                                                                              |
+| Tabla               | Dónde      | Notas                                                                                                                                                                                |
+| ------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `users`             | ambas      | Hash PBKDF2 con `salt` e `iterations`. Roles `ADMIN` y `EMPLOYEE`. Se desactiva, nunca se borra.                                                                                     |
+| `products`          | ambas      | Costo y precio actuales en centavos. El histórico vive en las líneas de venta. `stock` es una caché local (suma de sus movimientos) y no se sincroniza.                              |
+| `customers`         | ambas      | Nombre, cédula o RIF y teléfono. Opcional en la venta.                                                                                                                               |
+| `exchange_rates`    | ambas      | Una fila por día de negocio, y solo cuando un usuario la confirma. `source`: `WORKER`, `PUBLIC_API`, `MANUAL` o `WEB`.                                                               |
+| `sales`             | ambas      | La venta es la factura: `series` de la PC y `number` correlativo dentro de la serie (`A-000123`), `rate` del momento, `status` `COMPLETED` o `VOIDED`. Sin `customer_id` es anónima. |
+| `stock_movements`   | ambas      | Solo inserción: `delta`, `reason` (`INITIAL`, `SALE`, `VOID`, `PURCHASE`, `ADJUSTMENT`), `ref_id` y `device_id`. El stock de un producto es la suma de sus movimientos.              |
+| `business_settings` | ambas      | Ajustes que comparten todas las PCs: nombre, RIF y logo del negocio y el hash del código de recuperación. Gana el cambio más reciente.                                               |
+| `devices`           | ambas      | Las PCs del negocio: `series`, nombre, `active` y última conexión. En D1 guarda además el hash del token de cada una.                                                                |
+| `sync_conflicts`    | escritorio | Casos que el sync resolvió solo (código repetido, usuario repetido, administrador reactivado...) para que el admin los revise.                                                       |
+| `changes`           | nube       | Un registro por cambio aceptado, con `seq` asignado por el servidor. Es el cursor con el que las PCs bajan lo que hicieron las demás.                                                |
+| `sale_items`        | ambas      | Copia del código, nombre, precio y costo del producto al vender, así las ganancias pasadas nunca cambian.                                                                            |
+| `outbox`            | escritorio | Cambios pendientes de subir (`sent_at` nulo).                                                                                                                                        |
+| `settings`          | escritorio | URL del Worker, token de esta PC cifrado, id y serie de esta PC, cursor del pull, carpeta de respaldos y copias locales de nombre y logo.                                            |
+| `rate_candidates`   | nube       | Tasas propuestas por el cron o el teléfono, con la decisión que tomó el escritorio.                                                                                                  |
+| `cloud_meta`        | nube       | Clave/valor: nombre del negocio, hora del último sync.                                                                                                                               |
+| `login_attempts`    | nube       | Intentos fallidos de login, para el límite de intentos.                                                                                                                              |
 
 **Reglas**
 
@@ -122,13 +76,15 @@ El esquema está definido con Drizzle en `packages/shared/src/schema` y es el mi
 - USD en centavos (`INTEGER`). La tasa es un entero escalado a 4 decimales (`RATE_SCALE = 10_000`). Nada de floats para dinero.
 - Los enums van en mayúsculas y se definen una sola vez en `packages/shared/src/enums.ts`.
 - Los timestamps se guardan en UTC (ISO 8601). El día de negocio se calcula siempre en UTC−4 con `businessDate()`, nunca con la zona horaria de la PC.
-- Una venta, sus líneas, el descuento de stock y su fila de outbox se escriben en una sola transacción.
+- Una venta, sus líneas, sus movimientos de stock y su fila de outbox se escriben en una sola transacción.
+- **Stock:** nadie escribe `products.stock` directamente. Toda escritura crea un movimiento (`stockService.record`): la venta un `SALE` por línea, la anulación un `VOID` con id determinista (así, si dos PCs anulan la misma venta, el stock vuelve una sola vez), el formulario de producto un `ADJUSTMENT` por la diferencia. Si dos PCs venden la última unidad sin conexión el stock queda negativo, y el dashboard avisa.
+- **Quién gana al editar:** usuarios, productos, clientes, tasas y ajustes compartidos llevan `updated_at` y `updated_by_device`; gana el más reciente, y si empatan, el `device_id` mayor (`packages/shared/src/lww.ts`, la usan el escritorio y el Worker). El Worker recorta un `updated_at` más de 24 horas en el futuro. Las ventas no se editan: lo único que pasa es `COMPLETED → VOIDED`, y `VOIDED` siempre gana.
 - No se registra ninguna venta sin una fila en `exchange_rates` para el día de negocio actual.
 - Ganancia de una línea = `qty × (price_cents − cost_cents)`. En Bs se multiplica por la `rate` de su propia venta. El cálculo vive solo en `summarizeProfit` (`packages/shared/src/profit.ts`), así el escritorio y el teléfono muestran el mismo número.
 - Anular una venta cambia su `status` a `VOIDED` y devuelve el stock. No se borran filas.
-- **Unicidad:** usuario, código de producto y número de venta son únicos solo en el escritorio (`apps/desktop/drizzle/0001_desktop_unique.sql`). D1 nunca rechaza una fila del escritorio, por ejemplo números de venta reutilizados después de restaurar un respaldo.
+- **Unicidad:** el usuario y el par `(serie, número)` de la venta son únicos solo en el escritorio (`apps/desktop/drizzle/0001_desktop_unique.sql` y `0003_*`). D1 nunca rechaza una fila del escritorio. El código de producto no es único en ninguna parte: dos PCs pueden crear el mismo offline, y el sync deja el código al producto de `id` menor y renombra el otro a `CODIGO-2` en todas las PCs por igual.
 
-**Migraciones:** las dos salen del mismo esquema. Las del escritorio están en `apps/desktop/drizzle` (`pnpm --filter @bllt/desktop db:generate`) y se aplican al abrir la app. Las de D1 están en `apps/worker/migrations` (`pnpm --filter @bllt/worker db:generate`) y se aplican en el deploy.
+**Migraciones:** las dos salen del mismo esquema. Las del escritorio están en `apps/desktop/drizzle` (`pnpm --filter @bllt/desktop db:generate`) y se aplican al abrir la app. Antes de migrar una base con datos, `core/migrate.ts` guarda una copia (`premigracion-….db`, junto a los respaldos, que la limpieza diaria no borra); después convierte los datos de una sola vez (el stock existente pasa a un movimiento `INITIAL` por producto, las filas se marcan con el id de esta PC) y compara conteos y totales: si algo no coincide, la app no abre. Una instalación nueva, o una PC que se une a un negocio, nunca crea movimientos `INITIAL`: los recibe del Worker. Las de D1 están en `apps/worker/migrations` (`pnpm --filter @bllt/worker db:generate`) y se aplican en el deploy.
 
 ## App de escritorio
 
@@ -158,22 +114,28 @@ Cada canal IPC se registra con `handle()` (`core/ipc.ts`), que valida la entrada
 
 `apps/worker`: un Worker por negocio, en la cuenta de Cloudflare del propio negocio. Sirve la API bajo `/api/*` y el build de `apps/web` como assets en modo SPA, en el mismo dominio.
 
-| Ruta                    | Quién la llama | Auth         | Qué hace                                                                                        |
-| ----------------------- | -------------- | ------------ | ----------------------------------------------------------------------------------------------- |
-| `GET /api/health`       | Escritorio     | Ninguna      | `{ ok, protocol }`: la versión del contrato del sync que entiende este Worker                   |
-| `POST /api/sync/push`   | Escritorio     | `SYNC_TOKEN` | Recibe un lote del outbox y hace `upsert` por UUID. Responde los IDs aceptados                  |
-| `GET /api/sync/rate`    | Escritorio     | `SYNC_TOKEN` | Devuelve la tasa del cron del día (`internet`) y la sugerencia pendiente del teléfono (`phone`) |
-| `POST /api/auth/login`  | PWA            | Ninguna      | Valida contra `users` y entrega un JWT en cookie `HttpOnly`                                     |
-| `POST /api/auth/logout` | PWA            | Cookie       | Borra la cookie                                                                                 |
-| `GET /api/auth/me`      | PWA            | Cookie       | Usuario de la sesión                                                                            |
-| `GET /api/summary`      | PWA            | Cookie       | Ganancias del día y del mes, ventas del día, tasa confirmada y hora del último sync             |
-| `PUT /api/rate`         | PWA            | Cookie       | Crea una tasa candidata con `source = WEB`                                                      |
-| `GET /api/business`     | PWA            | Ninguna      | Nombre del negocio (también sale en la pantalla de login)                                       |
-| `/manifest.webmanifest` | Navegador      | Ninguna      | El manifest de la PWA con el nombre del negocio                                                 |
+| Ruta                             | Quién la llama | Auth         | Qué hace                                                                                                        |
+| -------------------------------- | -------------- | ------------ | --------------------------------------------------------------------------------------------------------------- |
+| `GET /api/health`                | Escritorio     | Ninguna      | `{ ok, protocol }`: la versión del contrato del sync que entiende este Worker                                   |
+| `GET /api/business/status`       | Escritorio     | `SYNC_TOKEN` | Si el negocio ya tiene datos y si la primera PC terminó de subirlos (para unir una PC nueva)                    |
+| `POST /api/devices/register`     | Escritorio     | `SYNC_TOKEN` | Registra una PC: le asigna serie y le entrega su propio token (en D1 queda solo su hash)                        |
+| `GET /api/devices`               | Escritorio     | Token de PC  | Las PCs del negocio y su última conexión                                                                        |
+| `POST /api/devices/:id/revoke`   | Escritorio     | Token de PC  | Desactiva una PC: su token deja de valer                                                                        |
+| `POST /api/sync/push`            | Escritorio     | Token de PC  | Recibe un lote del outbox, aplica "gana el último" y anota cada cambio en `changes`. Responde los IDs aceptados |
+| `GET /api/sync/pull`             | Escritorio     | Token de PC  | Lo que hicieron las otras PCs desde el cursor (`since`), con el estado actual de cada fila                      |
+| `POST /api/sync/upload-complete` | Escritorio     | Token de PC  | La primera PC avisa que terminó la subida inicial                                                               |
+| `GET /api/sync/rate`             | Escritorio     | Token de PC  | Devuelve la tasa del cron del día (`internet`) y la sugerencia pendiente del teléfono (`phone`)                 |
+| `POST /api/auth/login`           | PWA            | Ninguna      | Valida contra `users` y entrega un JWT en cookie `HttpOnly`                                                     |
+| `POST /api/auth/logout`          | PWA            | Cookie       | Borra la cookie                                                                                                 |
+| `GET /api/auth/me`               | PWA            | Cookie       | Usuario de la sesión                                                                                            |
+| `GET /api/summary`               | PWA            | Cookie       | Ganancias del día y del mes, ventas del día, tasa confirmada y hora del último sync                             |
+| `PUT /api/rate`                  | PWA            | Cookie       | Crea una tasa candidata con `source = WEB`                                                                      |
+| `GET /api/business`              | PWA            | Ninguna      | Nombre del negocio (también sale en la pantalla de login)                                                       |
+| `/manifest.webmanifest`          | Navegador      | Ninguna      | El manifest de la PWA con el nombre del negocio                                                                 |
 
 **Configuración** (`apps/worker/wrangler.jsonc`)
 
-- Secrets: `SYNC_TOKEN` y `JWT_SECRET`.
+- Secrets: `SYNC_TOKEN` (solo sirve para registrar PCs) y `JWT_SECRET`.
 - Assets con `not_found_handling: single-page-application`. Solo `/api/*` y el manifest pasan primero por el Worker.
 - Cron `0 4,10,16,22 * * *`: cada 6 horas en hora de Venezuela (00, 06, 12 y 18 UTC−4), porque Cloudflare evalúa los crons en UTC. Guarda la tasa en `rate_candidates`, nunca en `exchange_rates`.
 - Sin CORS (la PWA está en el mismo origen), `secureHeaders` en todo y middleware `csrf` en `/auth/*` y `/rate`.
@@ -206,27 +168,40 @@ Lo publica Cloudflare Workers Builds en cada push a `main` (Worker `bllt-site`, 
 
 ## Sincronización
 
-El sync va en una sola dirección por tipo de dato. Ventas, productos, clientes, usuarios, tasas confirmadas, decisiones sobre sugerencias y el nombre del negocio suben del escritorio a D1. De D1 solo bajan sugerencias de tasa. No hay merge bidireccional.
+Cada PC sube sus cambios y baja los de las otras a través del Worker. Una PC nunca habla con otra directamente, y cualquiera puede pasar horas sin conexión.
+
+**Dispositivos.** Cada instalación tiene un `device_id` (UUID) y una serie de una letra que usa en sus facturas. Se registra en el Worker con el `SYNC_TOKEN`, que solo sirve para eso: el Worker le asigna la serie (la PC original, que ya tiene ventas, pide la `A`) y le entrega su propio token, del que guarda solo el hash. La PC lo guarda cifrado con `safeStorage` y descarta el `SYNC_TOKEN`. Si roban una PC se desactiva sola desde otra (**Configuración → Nube**) y recibe 401.
 
 **Subida (outbox)** — `apps/desktop/src/main/modules/sync/sync.service.ts`
 
-1. Cada escritura relevante llama a `syncService.enqueue()` dentro de la misma transacción. La fila guarda una foto JSON de la entidad (una venta incluye sus líneas).
-2. Cada 45 segundos, y a mano desde el botón de sincronizar, el main pide `GET /api/health` para conocer el protocolo del Worker.
-3. Envía lotes de hasta 100 mensajes (`SYNC_BATCH_SIZE`) a `POST /api/sync/push` con `Authorization: Bearer <SYNC_TOKEN>`.
-4. El Worker valida el lote con el mismo esquema Zod y hace los `upsert` en un `batch` atómico de D1. El plan gratis de D1 limita las consultas por invocación, así que acepta solo el prefijo que cabe en `SYNC_STATEMENT_BUDGET` (40) y responde esos IDs.
-5. El escritorio marca esos IDs con `sent_at` y sigue enviando mientras el Worker acepte algo. Si la conexión cae a mitad de camino se reenvían, y el `upsert` evita duplicados.
+1. Cada escritura relevante llama a `syncService.enqueue()` dentro de la misma transacción. La fila guarda una foto JSON de la entidad (una venta incluye sus líneas; un producto no incluye su stock).
+2. Cada 45 segundos, y a mano desde el botón de sincronizar, el main pide `GET /api/health` para conocer el protocolo del Worker. Uno anterior al 3 no puede sincronizar y la app avisa que hay que actualizarlo.
+3. Envía lotes de hasta 100 mensajes (`SYNC_BATCH_SIZE`) a `POST /api/sync/push` con el token de la PC.
+4. El Worker valida con el mismo esquema Zod y aplica cada mensaje con la regla de su entidad (ver el modelo de datos) en un `batch` atómico de D1, anotando en `changes` cada cambio de las entidades compartidas. El plan gratis de D1 limita las consultas por invocación, así que acepta solo el prefijo que cabe en `SYNC_STATEMENT_BUDGET` (40) y responde esos IDs.
+5. El escritorio marca esos IDs con `sent_at` y sigue enviando mientras el Worker acepte algo. Si la conexión cae a mitad de camino se reenvían, y la regla de cada entidad es idempotente.
 
-**Versión del protocolo:** cada negocio despliega su propia copia del Worker y puede no actualizarla. `SYNC_PROTOCOL` (en `packages/shared/src/sync.ts`) sube cada vez que se agrega una entidad al outbox, y `ENTITY_PROTOCOL` dice desde qué versión existe cada una. Lo que un Worker anterior no entiende se queda en el outbox, sin contarse como pendiente, y el escritorio avisa que hay que actualizar la nube. Un Worker que no anuncia versión se toma como versión 1.
+**Bajada (pull)**
 
-**Bajada (tasa):** en cada ciclo el escritorio pide `GET /api/sync/rate` y recibe dos opciones, la tasa de internet (el cron) y la sugerencia del teléfono. Ninguna se aplica sola:
+1. Tras la subida, `GET /api/sync/pull?since=<seq>&limit=50` devuelve lo que hicieron las demás PCs. El cursor `seq` lo asigna el servidor: el reloj de las PCs nunca decide qué bajar. La respuesta trae el estado **actual** de cada fila tocada (una fila cambiada varias veces viaja una vez), `nextSeq`, `hasMore` y cuántos cambios faltan.
+2. `applyService.applyBatch` aplica el lote en **una transacción junto con el cursor**, así un corte nunca deja algo a medias. Lo que baja **nunca** entra al outbox (si no, volvería al Worker en un bucle). Solo entran las correcciones que el propio sync hace.
+3. Reglas al aplicar: se ignora el `stock` de los productos y se reconstruye desde los movimientos; un movimiento que ya existe se ignora; "gana el último" para las filas editables; `VOIDED` gana en las ventas.
+4. Casos que el sync resuelve solo y deja anotados en `sync_conflicts` (avisan al admin en el dashboard): código de producto repetido, usuario repetido (se renombra el de `id` mayor), cliente con la misma cédula, número de venta repetido tras restaurar un respaldo, y último administrador desactivado (se reactiva el desactivado más recientemente).
+5. Tras restaurar un respaldo el cursor vuelve atrás y la PC pide además sus propios cambios (`includeOwn`): lo que había subido después del respaldo sigue en el Worker y regresa. Lo que no alcanzó a subir se pierde en esa PC.
+
+**Primera conexión.** Una PC que ya tiene datos (la original) se conecta desde **Configuración → Nube**: se registra, vacía lo que había en el outbox de ese tipo, lo reconstruye desde las tablas y lo sube todo una vez, con progreso. Al terminar avisa a `POST /api/sync/upload-complete`. Una PC nueva abre la app, pone la URL y el `SYNC_TOKEN` en la primera pantalla y, si el negocio ya tiene datos (y la primera PC terminó), baja todo y entra al login con los usuarios descargados, sin crear un dueño nuevo ni pedir otro código de recuperación.
+
+**Versión del protocolo:** cada negocio despliega su propia copia del Worker y puede no actualizarla. `SYNC_PROTOCOL` (en `packages/shared/src/sync.ts`) sube cada vez que cambia el contrato; `ENTITY_PROTOCOL` dice desde qué versión existe cada entidad del outbox.
+
+**Tasa (bajada desde el Worker):** en cada ciclo el escritorio pide `GET /api/sync/rate` y recibe dos opciones, la tasa de internet (el cron) y la sugerencia del teléfono. Ninguna se aplica sola:
 
 - Si difiere de la confirmada, aparece un aviso con la tasa guardada, la nueva, su origen y la hora. El usuario la acepta o la descarta.
 - Aceptar crea o actualiza la fila de `exchange_rates`, que sube por el outbox. La decisión sobre una sugerencia del teléfono sube como `RATE_DECISION`.
 - Una candidata descartada no vuelve a mostrarse. Si el cron trae el mismo valor, conserva el id para que el descarte siga valiendo.
 - Las sugerencias del teléfono vencen a la 1:00 am (UTC−4) del día siguiente (`phoneSuggestionCutoff()`).
 - Las ventas ya hechas conservan su propia `rate`, así que un cambio de tasa nunca altera el pasado.
+- La tasa que confirma una PC llega a las demás por el pull como una fila más de `exchange_rates` (gana la última confirmación) y vale como confirmada: las otras PCs no vuelven a pedirla.
 
-El dashboard muestra el estado del sync: cuándo fue el último y cuántos cambios faltan por subir.
+El dashboard muestra el estado del sync: cuándo subió y bajó por última vez, cuántos cambios faltan en cada sentido (con progreso durante la subida inicial) y hasta cuándo llegaron los datos de las otras PCs.
 
 ## Tasa BCV
 
@@ -246,7 +221,7 @@ Lo usan el cron del Worker y, sin Worker, el escritorio al abrir y al pulsar “
 
 ## Autenticación y seguridad
 
-La auth está hecha a mano, sin librerías externas. Hay dos credenciales distintas: la de cada persona y el `SYNC_TOKEN` de la PC.
+La auth está hecha a mano, sin librerías externas. Hay dos credenciales distintas: la de cada persona y el token de cada PC.
 
 | Acción                                                   | `ADMIN` | `EMPLOYEE` |
 | -------------------------------------------------------- | ------- | ---------- |
@@ -258,15 +233,17 @@ La auth está hecha a mano, sin librerías externas. Hay dos credenciales distin
 - **Contraseñas:** PBKDF2-SHA256 con Web Crypto, 100.000 iteraciones por defecto (`packages/shared/src/password.ts`). El mismo formato (`password_hash`, `salt`, `iterations`) funciona en Node y en Workers, así un usuario creado en el escritorio puede iniciar sesión en el teléfono.
 - **Primer arranque:** si no hay usuarios, la app crea al owner (`ADMIN`) y muestra un código de recuperación para anotarlo en papel. Solo se guarda su hash. Sirve para resetear la contraseña de un admin desde el escritorio.
 - **Escritorio:** el login local contra SQLite es un bloqueo de pantalla, no protege el archivo. Quien tenga acceso a la PC puede abrir el `.db`.
-- **`SYNC_TOKEN`:** se guarda cifrado con `safeStorage` de Electron (DPAPI en Windows). El Worker lo compara en tiempo constante.
+- **`SYNC_TOKEN` y token de PC:** el `SYNC_TOKEN` solo registra PCs y no se guarda en ninguna. Cada PC recibe su propio token, que se guarda cifrado con `safeStorage` de Electron (DPAPI en Windows); el Worker guarda solo su SHA-256. El `SYNC_TOKEN` se compara en tiempo constante.
 - **Teléfono:** el Worker firma un JWT HS256 (`sub`, `role`, 30 días) con `JWT_SECRET` y lo entrega en cookie. Cada request revisa que el usuario siga `active`, así que un empleado desactivado pierde la sesión en cuanto llega el sync.
 - **Límite de intentos:** 5 logins fallidos en 15 minutos bloquean temporalmente (`login_attempts` en D1).
 - **Teléfono perdido:** rotar `JWT_SECRET` cierra todas las sesiones.
 
 ## Pruebas y CI
 
-- `pnpm --filter @bllt/shared test`: pruebas unitarias con Vitest de dinero, hora, ganancias y contraseñas.
-- `pnpm --filter @bllt/desktop test:e2e`: prueba de humo con Playwright (`_electron`) sobre la app construida. Recorre primer arranque, tasa, productos, venta, dashboard y respaldo. Con `BLLT_E2E_WORKER=http://localhost:8787` prueba también el sync contra un Worker local.
+- `pnpm --filter @bllt/shared test`: pruebas unitarias con Vitest de dinero, hora, ganancias, contraseñas y la regla de "gana el último".
+- `pnpm --filter @bllt/worker test`: pruebas del Worker con Vitest sobre un D1 de mentira hecho con `node:sqlite` y las migraciones reales (dispositivos, "gana el último", ventas y stock, pull).
+- `pnpm --filter @bllt/desktop test:data`: migra una base de la versión anterior y aplica cambios de otra PC con el código real, bajo Electron-como-Node (por el ABI de `better-sqlite3`).
+- `pnpm --filter @bllt/desktop test:e2e`: prueba de humo con Playwright (`_electron`) sobre la app construida. Recorre primer arranque, tasa, productos, venta, dashboard y respaldo. Con `BLLT_E2E_WORKER` y `BLLT_E2E_TOKEN` prueba también la conexión a un Worker local. `e2e/multi.mjs` levanta dos PCs contra un Worker local con la base vacía: una conecta, la otra se une, venden las dos y se comprueban stock, series, anulaciones y la desactivación de una PC.
 - `ci.yml`: typecheck de todos los paquetes, pruebas de `shared` y builds de `web` y `site` en cada PR y push a `main`.
 - `release-desktop.yml`: con un tag `v*`, compila el instalador NSIS de Windows, genera las notas desde el changelog y publica el release en GitHub.
 - `cloud-branch.yml`: publica la rama `cloud` desde el último tag estable.

@@ -3,6 +3,10 @@ import type { BusinessDto } from '../../../types/api'
 import { transaction } from '../../core/db'
 import { SettingKey, settingsService } from '../settings/settings.service'
 import { outboxRepository } from '../sync/outbox.repository'
+import {
+  BusinessSettingKey,
+  businessSettingsService
+} from '../business-settings/business-settings.service'
 import { syncService } from '../sync/sync.service'
 
 /** Outbox row id for the business: there is only one. */
@@ -25,6 +29,7 @@ export const businessService = {
       setOrDelete(SettingKey.BUSINESS_RIF, input.rif)
       setOrDelete(SettingKey.BUSINESS_LOGO, input.logo)
       syncService.enqueue(OutboxEntity.BUSINESS, BUSINESS_ENTITY_ID, { name: input.name })
+      shareWithOtherPcs()
     })
     return businessService.get()
   },
@@ -34,7 +39,16 @@ export const businessService = {
     const name = settingsService.get(SettingKey.BUSINESS_NAME)
     if (name && !outboxRepository.hasEntity(OutboxEntity.BUSINESS))
       syncService.enqueue(OutboxEntity.BUSINESS, BUSINESS_ENTITY_ID, { name })
+    // Installs from before the sync between PCs: the data the other PCs will receive.
+    if (name && !businessSettingsService.has(BusinessSettingKey.BUSINESS))
+      transaction(() => shareWithOtherPcs())
   }
+}
+
+/** The other PCs need the same name, RIF and logo for their receipts. */
+function shareWithOtherPcs(): void {
+  const { name, rif, logo } = businessService.get()
+  businessSettingsService.setJson(BusinessSettingKey.BUSINESS, { name, rif, logo })
 }
 
 function setOrDelete(key: SettingKey, value: string | null): void {

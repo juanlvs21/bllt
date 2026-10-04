@@ -12,7 +12,10 @@
 
   onMount(() => {
     void dashboardApi.syncStatus().then((s) => (status = s))
-    return window.api.events.onSyncStatus((s) => (status = s))
+    return window.api.events.onSyncStatus((s) => {
+      // A block body: returning the $state proxy would try to clone it back over the bridge.
+      status = s
+    })
   })
 
   /** Pushes pending changes now and brings back the phone suggestion. */
@@ -26,9 +29,10 @@
   const label = $derived.by(() => {
     if (!status) return ''
     if (status.running) return 'Sincronizando…'
+    if (status.revoked) return 'Esta PC fue desactivada desde otra PC'
     if (status.lastError) return `${status.lastError}. Toca para reintentar.`
-    if (status.pending > 0)
-      return `${plural(status.pending, 'cambio pendiente', 'cambios pendientes')}. Sincronizar ahora`
+    if (status.pending > 0 || status.pendingDown)
+      return `${plural(status.pending, 'cambio por subir', 'cambios por subir')}, ${plural(status.pendingDown ?? 0, 'por bajar', 'por bajar')}. Sincronizar ahora`
     return status.lastSyncAt
       ? `Sincronizado ${formatRelative(status.lastSyncAt)}. Sincronizar ahora`
       : 'Sincronizar ahora'
@@ -49,7 +53,7 @@
           aria-label={label}
         >
           <RefreshIcon class={status!.running ? 'animate-spin' : ''} />
-          {#if status!.lastError || status!.pending > 0}
+          {#if status!.lastError || status!.pending > 0 || status!.pendingDown}
             <span
               class={cn(
                 'absolute top-1.5 right-1.5 size-2 rounded-full',

@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
+  clampFuture,
+  formatSaleNumber,
+  wins,
   businessDate,
   businessDayRange,
   businessInput,
@@ -60,12 +63,8 @@ describe('time', () => {
 
   it('expires phone suggestions at 1:00 am Venezuela time', () => {
     // 12:30 am on the 28th (UTC-4) still sees the suggestion made at 11 pm on the 27th.
-    expect(phoneSuggestionCutoff(new Date('2026-09-28T04:30:00Z'))).toBe(
-      '2026-09-27T05:00:00.000Z'
-    )
-    expect(phoneSuggestionCutoff(new Date('2026-09-28T05:00:00Z'))).toBe(
-      '2026-09-28T05:00:00.000Z'
-    )
+    expect(phoneSuggestionCutoff(new Date('2026-09-28T04:30:00Z'))).toBe('2026-09-27T05:00:00.000Z')
+    expect(phoneSuggestionCutoff(new Date('2026-09-28T05:00:00Z'))).toBe('2026-09-28T05:00:00.000Z')
   })
 
   it('formats Venezuela time', () => {
@@ -120,5 +119,31 @@ describe('business', () => {
     expect(parse('data:image/svg+xml;base64,PHN2Zz4=').success).toBe(false)
     expect(parse('https://example.com/logo.png').success).toBe(false)
     expect(parse(`data:image/png;base64,${'A'.repeat(LOGO_MAX_LENGTH)}`).success).toBe(false)
+  })
+})
+
+describe('last edit wins', () => {
+  const a = { updatedAt: '2026-10-01T10:00:00.000Z', updatedByDevice: 'dev-1' }
+  it('prefers the newer edit', () => {
+    expect(wins({ ...a, updatedAt: '2026-10-01T10:00:01.000Z' }, a)).toBe(true)
+    expect(wins({ ...a, updatedAt: '2026-10-01T09:59:59.000Z' }, a)).toBe(false)
+  })
+  it('breaks ties with the greater device id, the same way on every PC', () => {
+    const b = { ...a, updatedByDevice: 'dev-2' }
+    expect(wins(b, a)).toBe(true)
+    expect(wins(a, b)).toBe(false)
+    expect(wins(a, a)).toBe(false)
+  })
+  it('pulls a timestamp from the far future back to now', () => {
+    const now = new Date('2026-10-01T00:00:00.000Z')
+    expect(clampFuture('2026-10-01T12:00:00.000Z', now)).toBe('2026-10-01T12:00:00.000Z')
+    expect(clampFuture('2026-12-01T00:00:00.000Z', now)).toBe(now.toISOString())
+  })
+})
+
+describe('sale number', () => {
+  it('prints the series and a six digit correlative', () => {
+    expect(formatSaleNumber('A', 123)).toBe('A-000123')
+    expect(formatSaleNumber('B', 1234567)).toBe('B-1234567')
   })
 })

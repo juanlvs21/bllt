@@ -5,6 +5,7 @@
     formatBs,
     formatBusinessDateTime,
     formatRate,
+    formatSaleNumber,
     formatUsd,
     usdCentsToBsCents
   } from '../../../lib/format'
@@ -39,7 +40,9 @@
         <p class="text-primary text-xl font-bold">Resumen de venta</p>
         <p class="text-muted-foreground text-sm">Revisa antes de registrar</p>
       {:else}
-        <p class="text-primary text-xl font-bold">Venta #{sale.number}</p>
+        <p class="text-primary text-xl font-bold">
+          Venta {formatSaleNumber(sale.series, sale.number)}
+        </p>
         <p class="text-muted-foreground text-sm">{formatBusinessDateTime(sale.createdAt)}</p>
         {#if sale.status === 'VOIDED'}<Badge variant="destructive" class="mt-1">Anulada</Badge>{/if}
       {/if}

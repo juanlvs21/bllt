@@ -15,6 +15,20 @@
       "when": 1790519288264,
       "tag": "0001_desktop_unique",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1791123696728,
+      "tag": "0002_good_leopardon",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1791123703109,
+      "tag": "0003_desktop_series_legacy_outbox",
+      "breakpoints": true
     }
   ]
 }

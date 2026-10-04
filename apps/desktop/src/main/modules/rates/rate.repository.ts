@@ -18,7 +18,8 @@ export const rateRepository = {
           bsPerUsd: row.bsPerUsd,
           source: row.source,
           confirmedBy: row.confirmedBy,
-          confirmedAt: row.confirmedAt
+          confirmedAt: row.confirmedAt,
+          updatedByDevice: row.updatedByDevice
         }
       })
       .returning()

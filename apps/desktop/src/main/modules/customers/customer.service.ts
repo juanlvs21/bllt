@@ -1,7 +1,6 @@
 import {
   DomainError,
   ErrorCode,
-  nowIso,
   OutboxEntity,
   type CustomerInput,
   type CustomerRow,
@@ -15,6 +14,7 @@ import { transaction } from '../../core/db'
 import { notFound } from '../../core/errors'
 import { newId } from '../../utils/id'
 import { pageWindow } from '../../utils/page'
+import { deviceService } from '../devices/device.service'
 import { syncService } from '../sync/sync.service'
 import { customerRepository } from './customer.repository'
 
@@ -63,8 +63,14 @@ export const customerService = {
   create(input: CustomerInput): CustomerDto {
     const document = normalizeDocument(input.document)
     assertDocumentFree(document)
-    const now = nowIso()
-    const row: CustomerRow = { id: newId(), ...input, document, createdAt: now, updatedAt: now }
+    const stamp = deviceService.stamp()
+    const row: CustomerRow = {
+      id: newId(),
+      ...input,
+      document,
+      createdAt: stamp.updatedAt,
+      ...stamp
+    }
     transaction(() => {
       customerRepository.insert(row)
       syncService.enqueue(OutboxEntity.CUSTOMER, row.id, row)
@@ -78,7 +84,7 @@ export const customerService = {
     assertDocumentFree(document, input.id)
     const { id, ...patch } = input
     return transaction(() => {
-      const row = customerRepository.update(id, { ...patch, document, updatedAt: nowIso() })
+      const row = customerRepository.update(id, { ...patch, document, ...deviceService.stamp() })
       syncService.enqueue(OutboxEntity.CUSTOMER, row.id, row)
       return toDto(row)
     })

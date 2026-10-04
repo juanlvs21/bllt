@@ -46,6 +46,7 @@ const step = (label) => console.log(`✓ ${label}`)
 
 try {
   // First run: owner + recovery code.
+  await page.getByRole('button', { name: 'Usar solo en esta PC' }).click()
   await page.getByLabel('Nombre del negocio').fill('Bodega La Esquina')
   await page.getByLabel('RIF (opcional)').fill('j123456789')
   await page.locator('#logo').setInputFiles(join(root, 'build', 'icon.png'))
@@ -55,8 +56,7 @@ try {
   await page.getByLabel('Contraseña', { exact: true }).fill('secreto123')
   await page.getByLabel('Repite la contraseña').fill('secreto123')
   await shot('01-setup')
-  await page.getByRole('button', { name: 'Continuar' }).click()
-  await page.getByRole('button', { name: 'Configurar después' }).click()
+  await page.getByRole('button', { name: 'Crear cuenta' }).click()
   await page.getByText('Código de recuperación').waitFor()
   await shot('02-recovery-code')
   await page.getByRole('checkbox').click()
@@ -108,7 +108,7 @@ try {
   await page.getByRole('button', { name: 'Registrar venta' }).click()
   await page.getByRole('dialog').getByText('Resumen de venta').waitFor()
   await page.getByRole('button', { name: 'Confirmar venta' }).click()
-  await page.getByRole('dialog').getByText('Venta #1', { exact: true }).waitFor()
+  await page.getByRole('dialog').getByText('Venta A-000001', { exact: true }).waitFor()
   await shot('07-invoice', { toasts: false })
   // Printing previews the receipt PDF in its own window, straight from memory.
   await page.getByRole('button', { name: 'Imprimir' }).click()
@@ -119,7 +119,7 @@ try {
   }
   if (!preview) throw new Error('No se abrió la vista previa del PDF')
   await preview.waitForLoadState()
-  if (!/^bllt-receipt:\/\/pdf\/.+\/Venta-1\.pdf#/.test(preview.url()))
+  if (!/^bllt-receipt:\/\/pdf\/.+\/Venta-A-000001\.pdf#/.test(preview.url()))
     throw new Error(`Vista previa inesperada: ${preview.url()}`)
   const pdfBytes = await preview.evaluate(
     async () => (await (await fetch(location.href)).arrayBuffer()).byteLength
@@ -147,7 +147,7 @@ try {
   const today = page.locator('[data-bits-day][data-today]:not([data-outside-month])')
   await today.click()
   await today.click()
-  await page.getByRole('cell', { name: '#1', exact: true }).waitFor()
+  await page.getByRole('cell', { name: 'A-000001', exact: true }).waitFor()
   step('ventas filtradas por período')
 
   await page.getByRole('button', { name: 'Productos' }).click()
@@ -173,28 +173,24 @@ try {
     await page.getByLabel('URL del Worker').fill(process.env.BLLT_E2E_WORKER)
     await page.getByLabel('SYNC_TOKEN').fill('token-equivocado')
     await page.getByRole('button', { name: 'Probar conexión' }).click()
-    await page.getByText('El SYNC_TOKEN no es válido').waitFor()
+    await page.getByText('El token no es válido').waitFor()
     await page.getByLabel('SYNC_TOKEN').fill(process.env.BLLT_E2E_TOKEN ?? 'test-token')
     await page.getByRole('button', { name: 'Probar conexión' }).click()
     await page.getByText('Conexión correcta con el Worker').waitFor()
-    step('probar conexión antes de guardar')
-    await page.getByRole('button', { name: 'Guardar' }).click()
+    step('probar conexión antes de conectar')
+    await page.getByLabel('Nombre de esta PC').fill('Caja principal')
+    await page.getByRole('button', { name: 'Conectar', exact: true }).click()
+    await page.getByText('Caja principal').first().waitFor()
     await page.getByRole('button', { name: 'Inicio' }).click()
-    await page.getByText(/Sincronizado hace/).waitFor({ timeout: 20_000 })
+    await page.getByText('Todo al día').waitFor({ timeout: 30_000 })
     await shot('10-synced')
     step('sincronizado con el Worker')
 
-    if (!process.env.BLLT_E2E_OLD_WORKER) {
-      // The PWA reads the synced business name from the Worker.
-      const { name } = await (await fetch(`${process.env.BLLT_E2E_WORKER}/api/business`)).json()
-      if (name !== 'Bodega La Esquina')
-        throw new Error(`La PWA no recibe el nombre del negocio sincronizado: ${name}`)
-      step('nombre del negocio en la PWA')
-    } else {
-      // A Worker from before the business entity: sync still works and the desktop says to update.
-      await page.getByText(/Tu Worker es de una versión anterior/).waitFor()
-      step('Worker anterior: sincroniza y avisa')
-    }
+    // The PWA reads the synced business name from the Worker.
+    const { name } = await (await fetch(`${process.env.BLLT_E2E_WORKER}/api/business`)).json()
+    if (name !== 'Bodega La Esquina')
+      throw new Error(`La PWA no recibe el nombre del negocio sincronizado: ${name}`)
+    step('nombre del negocio en la PWA')
 
     // Disconnect asks first; confirming clears the URL.
     await page.getByRole('button', { name: 'Configuración' }).click()
@@ -202,8 +198,7 @@ try {
     await page.getByRole('button', { name: 'Desconectar' }).click()
     await page.getByRole('button', { name: 'Cancelar' }).click()
     await page.getByRole('alertdialog').waitFor({ state: 'detached' })
-    if (!(await page.getByLabel('URL del Worker').inputValue()))
-      throw new Error('Cancelar borró la URL')
+    await page.getByText('Caja principal').first().waitFor()
     await page.getByRole('button', { name: 'Desconectar' }).click()
     await page.getByRole('alertdialog').getByRole('button', { name: 'Desconectar' }).click()
     await page.getByText('Nube desconectada').waitFor()

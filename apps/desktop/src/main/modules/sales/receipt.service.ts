@@ -4,6 +4,7 @@ import { join } from 'node:path'
 import {
   formatBs,
   formatBusinessDateTime,
+  formatSaleNumber,
   formatRate,
   formatUsd,
   usdCentsToBsCents
@@ -68,7 +69,7 @@ export const receiptService = {
       width: 900,
       height: Math.min(1000, parent?.getBounds().height ?? 1000),
       parent,
-      title: `Venta #${sale.number}`,
+      title: `Venta ${formatSaleNumber(sale.series, sale.number)}`,
       autoHideMenuBar: true,
       backgroundColor: '#525659',
       webPreferences: { partition: PARTITION, sandbox: true, contextIsolation: true, plugins: true }
@@ -77,7 +78,9 @@ export const receiptService = {
     win.webContents.on('will-navigate', (event) => event.preventDefault())
     win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
     // Viewer options: no thumbnail sidebar, page fit to the window width.
-    await win.loadURL(`${SCHEME}://pdf/${token}/Venta-${sale.number}.pdf#navpanes=0&view=FitH`)
+    await win.loadURL(
+      `${SCHEME}://pdf/${token}/Venta-${formatSaleNumber(sale.series, sale.number)}.pdf#navpanes=0&view=FitH`
+    )
   }
 }
 
@@ -159,7 +162,7 @@ function headerHtml(sale: SaleDto, business: BusinessDto): string {
     </div>
   </div>
   <div style="text-align:right;white-space:nowrap">
-    <div style="font-size:14px;font-weight:700;color:${PRIMARY}">Venta #${sale.number}</div>
+    <div style="font-size:14px;font-weight:700;color:${PRIMARY}">Venta ${formatSaleNumber(sale.series, sale.number)}</div>
     <div style="font-size:9px;color:${MUTED}">${esc(formatBusinessDateTime(sale.createdAt))}</div>
     ${voided}
   </div>
@@ -197,7 +200,7 @@ function bodyHtml(sale: SaleDto): string {
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<title>Venta #${sale.number}</title>
+<title>Venta ${formatSaleNumber(sale.series, sale.number)}</title>
 <style>
   * { box-sizing: border-box; }
   body { margin: 0; font-family: ${FONT}; font-size: 10.5px; color: ${INK};

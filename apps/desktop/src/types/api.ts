@@ -4,7 +4,10 @@
  */
 import type {
   BusinessInputRaw,
-  CloudSettingsInput,
+  BusinessStatus,
+  CloudSettingsInputRaw,
+  ConflictKind,
+  DeviceDto,
   CustomerInput,
   CustomerUpdate,
   DashboardSummary,
@@ -68,6 +71,8 @@ export interface ProductPage extends Page<ProductDto> {
   /** Stock × cost of every matching product, not just this page. */
   inventoryCents: number
   lowStock: number
+  /** Active products below zero: two PCs sold the last units while offline. */
+  negativeStock: number
 }
 
 export interface CustomerDto {
@@ -123,6 +128,10 @@ export interface SaleItemDto {
 
 export interface SaleDto {
   id: string
+  /** Series and number make the invoice: "A-000123" (see formatSaleNumber). */
+  series: string
+  /** Name of the PC that issued the series; empty if the Worker never told this PC. */
+  deviceName: string
   number: number
   customerId: string | null
   customerName: string | null
@@ -148,17 +157,40 @@ export interface SalePage extends Page<SaleDto> {
 export interface SyncStatus {
   configured: boolean
   running: boolean
+  /** Changes of this PC still to upload. */
   pending: number
+  /** Changes of other PCs still to download, as of the last pull; null before the first one. */
+  pendingDown: number | null
+  /** Changes applied since the app opened (progress while joining). */
+  downloaded: number
   lastSyncAt: string | null
+  lastPushAt: string | null
+  lastPullAt: string | null
   lastError: string | null
+  /** The Worker deactivated this PC: it's no longer allowed to sync. */
+  revoked: boolean
+  deviceName: string
+  series: string
+  /** Rows queued by the first full upload while it hasn't finished; null otherwise. */
+  uploadTotal: number | null
   /** The Worker runs an older sync protocol: some changes wait until it's updated. */
   workerOutdated: boolean
 }
 
 export interface CloudSettings {
   workerUrl: string
-  hasToken: boolean
+  /** This PC is registered with the Worker and has its own token. */
+  connected: boolean
+  deviceName: string
+  series: string
   secureStorage: boolean
+}
+
+export interface SyncConflictDto {
+  id: string
+  kind: ConflictKind
+  detail: string
+  createdAt: string
 }
 
 export interface BackupInfo {
@@ -260,9 +292,19 @@ export interface BlltApi {
     status(): R<SyncStatus>
     runNow(): R<SyncStatus>
     getSettings(): R<CloudSettings>
-    saveSettings(input: CloudSettingsInput): R<CloudSettings>
-    /** Tries the typed URL and token (empty token: the stored one) without saving. */
-    test(input: CloudSettingsInput): R<{ ok: boolean; message: string }>
+    /** Connects this PC to a Worker with the registration token (empty URL: disconnects). */
+    saveSettings(input: CloudSettingsInputRaw): R<CloudSettings>
+    /** Tries the typed URL and registration token without saving. */
+    test(input: CloudSettingsInputRaw): R<{ ok: boolean; message: string }>
+    /** First launch only: what the Worker says about the business. */
+    inspect(input: CloudSettingsInputRaw): R<BusinessStatus>
+    /** First launch only: joins a business that already has data and downloads it. */
+    join(input: CloudSettingsInputRaw): R<void>
+    devices(): R<DeviceDto[]>
+    /** Deactivates another PC at the Worker: it can no longer sync. */
+    revokeDevice(id: string): R<DeviceDto[]>
+    conflicts(): R<SyncConflictDto[]>
+    resolveConflict(id: string): R<void>
   }
   backups: {
     list(): R<BackupInfo[]>

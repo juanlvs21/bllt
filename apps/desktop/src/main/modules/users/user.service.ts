@@ -2,7 +2,6 @@ import {
   DomainError,
   ErrorCode,
   hashPassword,
-  nowIso,
   normalizeRecoveryCode,
   OutboxEntity,
   Role,
@@ -21,7 +20,11 @@ import { forbidden, notFound } from '../../core/errors'
 import { session } from '../../core/session'
 import { newId } from '../../utils/id'
 import { businessService } from '../business/business.service'
-import { SettingKey, settingsService } from '../settings/settings.service'
+import {
+  businessSettingsService,
+  BusinessSettingKey
+} from '../business-settings/business-settings.service'
+import { deviceService } from '../devices/device.service'
 import { syncService } from '../sync/sync.service'
 import { userRepository } from './user.repository'
 
@@ -43,14 +46,22 @@ async function newUserRow(username: string, password: string, role: Role): Promi
     throw new DomainError(ErrorCode.CONFLICT, 'Ese usuario ya existe')
   }
   const hash = await hashPassword(password)
-  const now = nowIso()
-  return { id: newId(), username, ...hash, role, active: true, createdAt: now, updatedAt: now }
+  const stamp = deviceService.stamp()
+  return {
+    id: newId(),
+    username,
+    ...hash,
+    role,
+    active: true,
+    createdAt: stamp.updatedAt,
+    ...stamp
+  }
 }
 
 async function storeRecoveryCode(): Promise<string> {
   const code = generateRecoveryCode()
   const hash = await hashPassword(normalizeRecoveryCode(code))
-  settingsService.setJson(SettingKey.RECOVERY_CODE, hash)
+  transaction(() => businessSettingsService.setJson(BusinessSettingKey.RECOVERY_CODE, hash))
   return code
 }
 
@@ -71,7 +82,15 @@ export const userService = {
       syncUser(row)
     })
     if (input.workerUrl) {
-      syncService.saveSettings({ workerUrl: input.workerUrl, syncToken: input.syncToken ?? '' })
+      // The connection was already tried on the first screen; if the Worker is down now, the
+      // owner can connect later from Settings.
+      await syncService
+        .connect({
+          workerUrl: input.workerUrl,
+          syncToken: input.syncToken ?? '',
+          deviceName: input.deviceName ?? ''
+        })
+        .catch((error) => console.error('[sync]', error))
     }
     const user = toSession(row)
     session.set(user)
@@ -95,7 +114,10 @@ export const userService = {
 
   /** Resets the password of an ADMIN using the paper recovery code. */
   async recover(input: RecoverInput): Promise<void> {
-    const stored = settingsService.getJson<PasswordHash | null>(SettingKey.RECOVERY_CODE, null)
+    const stored = businessSettingsService.getJson<PasswordHash | null>(
+      BusinessSettingKey.RECOVERY_CODE,
+      null
+    )
     const row = userRepository.findByUsername(input.username)
     const valid =
       stored &&
@@ -106,7 +128,7 @@ export const userService = {
     }
     const hash = await hashPassword(input.newPassword)
     transaction(() =>
-      syncUser(userRepository.update(row.id, { ...hash, active: true, updatedAt: nowIso() }))
+      syncUser(userRepository.update(row.id, { ...hash, active: true, ...deviceService.stamp() }))
     )
   },
 
@@ -116,7 +138,9 @@ export const userService = {
       throw new DomainError(ErrorCode.VALIDATION, 'La contraseña actual no es correcta')
     }
     const hash = await hashPassword(next)
-    transaction(() => syncUser(userRepository.update(row.id, { ...hash, updatedAt: nowIso() })))
+    transaction(() =>
+      syncUser(userRepository.update(row.id, { ...hash, ...deviceService.stamp() }))
+    )
   },
 
   list(): UserDto[] {
@@ -147,14 +171,14 @@ export const userService = {
     ) {
       throw new DomainError(ErrorCode.VALIDATION, 'Debe quedar al menos un administrador activo')
     }
-    transaction(() => syncUser(userRepository.update(id, { active, updatedAt: nowIso() })))
+    transaction(() => syncUser(userRepository.update(id, { active, ...deviceService.stamp() })))
   },
 
   async resetPassword(id: string, password: string): Promise<void> {
     const row = userRepository.findById(id)
     if (!row) throw notFound('El usuario')
     const hash = await hashPassword(password)
-    transaction(() => syncUser(userRepository.update(id, { ...hash, updatedAt: nowIso() })))
+    transaction(() => syncUser(userRepository.update(id, { ...hash, ...deviceService.stamp() })))
   },
 
   async regenerateRecoveryCode(actor: SessionUser): Promise<string> {

@@ -74,6 +74,7 @@ try {
   // First run and today's rate, typed by hand so it doesn't depend on the network.
   let page
   ;({ app, page } = await launch())
+  await page.getByRole('button', { name: 'Usar solo en esta PC' }).click()
   await page.getByLabel('Nombre del negocio').fill('Bodega La Esquina')
   await page.getByLabel('RIF (opcional)').fill('J-12345678-9')
   await page.locator('#logo').setInputFiles(join(root, 'build', 'icon.png'))
@@ -84,8 +85,7 @@ try {
   await page.getByLabel('Usuario').fill('dueno')
   await page.getByLabel('Contraseña', { exact: true }).fill('secreto123')
   await page.getByLabel('Repite la contraseña').fill('secreto123')
-  await page.getByRole('button', { name: 'Continuar' }).click()
-  await page.getByRole('button', { name: 'Configurar después' }).click()
+  await page.getByRole('button', { name: 'Crear cuenta' }).click()
   await page.getByText('Código de recuperación').first().waitFor()
   await shot(page, '02-recovery')
   await page.getByRole('checkbox').click()
@@ -179,7 +179,7 @@ try {
   await page.getByRole('button', { name: 'Confirmar venta' }).click()
   await page
     .getByRole('dialog')
-    .getByText(/^Venta #\d+$/)
+    .getByText(/^Venta [A-Z]-\d+$/)
     .waitFor()
   await shot(page, '07-invoice', { toasts: false })
   // The PDF is rendered in a hidden window first; the viewer is the one on bllt-receipt://.

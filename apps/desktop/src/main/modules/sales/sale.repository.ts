@@ -23,10 +23,12 @@ function listFilter(filter: SaleListFilter): SQL | undefined {
 }
 
 export const saleRepository = {
-  nextNumber(): number {
+  /** Next correlative inside one series: every PC counts only its own. */
+  nextNumber(series: string): number {
     const row = db()
       .select({ n: max(sales.number) })
       .from(sales)
+      .where(eq(sales.series, series))
       .get()
     return (row?.n ?? 0) + 1
   },

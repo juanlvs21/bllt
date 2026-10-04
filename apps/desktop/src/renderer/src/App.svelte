@@ -82,7 +82,7 @@
   {#if phase === 'loading'}
     <div class="text-muted-foreground flex h-full items-center justify-center">Cargando…</div>
   {:else if phase === 'setup'}
-    <SetupPage onDone={enter} />
+    <SetupPage onDone={enter} onJoined={() => (phase = 'login')} />
   {:else if phase === 'login'}
     <LoginPage onDone={enter} />
   {:else if phase === 'rate'}

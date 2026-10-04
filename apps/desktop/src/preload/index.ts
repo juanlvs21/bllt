@@ -71,7 +71,13 @@ const api: BlltApi = {
     runNow: call('sync:runNow'),
     getSettings: call('sync:getSettings'),
     saveSettings: call('sync:saveSettings'),
-    test: call('sync:test')
+    test: call('sync:test'),
+    inspect: call('sync:inspect'),
+    join: call('sync:join'),
+    devices: call('sync:devices'),
+    revokeDevice: call('sync:revokeDevice'),
+    conflicts: call('sync:conflicts'),
+    resolveConflict: call('sync:resolveConflict')
   },
   backups: {
     list: call('backups:list'),

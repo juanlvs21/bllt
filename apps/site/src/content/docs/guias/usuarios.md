@@ -4,12 +4,12 @@ description: Crea empleados, desactívalos y cambia contraseñas.
 order: 13
 ---
 
-| Acción | Administrador | Empleado |
-| --- | --- | --- |
-| Ventas, productos, clientes, confirmar tasa, inicio | Sí | Sí |
-| Crear, desactivar y cambiar contraseña de usuarios | Sí | No |
-| Nube, respaldos y exportar | Sí | No |
-| Anular ventas | Sí | No |
+| Acción                                              | Administrador | Empleado |
+| --------------------------------------------------- | ------------- | -------- |
+| Ventas, productos, clientes, confirmar tasa, inicio | Sí            | Sí       |
+| Crear, desactivar y cambiar contraseña de usuarios  | Sí            | No       |
+| Nube, respaldos y exportar                          | Sí            | No       |
+| Anular ventas                                       | Sí            | No       |
 
 En **Configuración → Usuarios** (solo administradores):
 
@@ -20,4 +20,4 @@ En **Configuración → Usuarios** (solo administradores):
 - **Cambiar contraseña:** para un empleado que olvidó la suya.
 - No se puede desactivar al último administrador activo.
 
-Si el dueño olvida su contraseña, usa **Olvidé la contraseña del dueño** en la pantalla de inicio con el código de recuperación. Si perdiste el código, genera uno nuevo en esta misma sección mientras tengas sesión.
+Si el dueño olvida su contraseña, usa **Olvidé la contraseña del dueño** en la pantalla de inicio con el código de recuperación. Si perdiste el código, genera uno nuevo en esta misma sección mientras tengas sesión. Con la nube, los usuarios y el código de recuperación son los mismos en todas las PCs: puedes recuperar la cuenta del dueño en cualquiera.

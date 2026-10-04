@@ -21,6 +21,7 @@
   let total = $state(0)
   let inventoryValue = $state(0)
   let lowStock = $state(0)
+  let negativeStock = $state(0)
   let editing = $state<ProductDto | null>(null)
   let dialogOpen = $state(false)
   let stockOpen = $state(false)
@@ -32,6 +33,7 @@
     total = result?.total ?? 0
     inventoryValue = result?.inventoryCents ?? 0
     lowStock = result?.lowStock ?? 0
+    negativeStock = result?.negativeStock ?? 0
     if (result) page = result.page
     loaded = true
   }
@@ -90,6 +92,9 @@
           >{formatUsd(inventoryValue)}</strong
         ></span
       >
+      {#if negativeStock > 0}<Badge variant="outline" class="border-destructive text-destructive"
+          >{negativeStock} en negativo</Badge
+        >{/if}
       {#if lowStock > 0}<Badge variant="outline" class="border-gold text-gold"
           >{lowStock} por agotarse</Badge
         >{/if}

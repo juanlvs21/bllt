@@ -10,6 +10,7 @@ import {
   businessDateRange,
   formatBusinessDate,
   formatBusinessTime,
+  formatSaleNumber,
   lineProfitCents,
   rateToNumber,
   SaleStatus,
@@ -34,6 +35,7 @@ export type ExportMessage =
 
 const HEADERS = [
   'Venta',
+  'PC',
   'Fecha',
   'Hora',
   'Estado',
@@ -56,7 +58,8 @@ function toRow(line: ExportLine): (string | number)[] {
   const total = line.qty * line.priceCents
   const profit = line.status === SaleStatus.COMPLETED ? lineProfitCents(line) : 0
   return [
-    line.number,
+    formatSaleNumber(line.series, line.number),
+    line.device ?? line.series,
     formatBusinessDate(line.createdAt),
     formatBusinessTime(line.createdAt),
     line.status === SaleStatus.COMPLETED ? 'Completada' : 'Anulada',

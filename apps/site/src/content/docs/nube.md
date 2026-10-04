@@ -1,11 +1,12 @@
 ---
 title: Nube en Cloudflare (opcional)
-description: Despliega tu propio Worker gratis para ver el resumen desde el teléfono y sugerir la tasa.
+description: Despliega tu propio Worker gratis para usar varias PCs con los mismos datos, ver el resumen desde el teléfono y sugerir la tasa.
 order: 2
 ---
 
 La nube es **opcional**. Sin ella Bllt funciona igual; con ella puedes:
 
+- Usar **varias PCs** con los mismos datos: una puede vender mientras la otra supervisa, o puedes cambiar de PC si una se traba. Mira [Usar varias PCs](/docs/guias/varias-pcs).
 - Ver ganancias del día y del mes y las ventas de hoy desde el teléfono.
 - Recibir la tasa BCV automática cada 6 horas como sugerencia.
 - Sugerir la tasa desde el teléfono (la PC decide si la acepta).
@@ -22,10 +23,10 @@ Entra a [dash.cloudflare.com](https://dash.cloudflare.com/sign-up) y regístrate
 
 El asistente crea el Worker, la base D1 y la tarea programada. Te pedirá dos secretos:
 
-| Secreto      | Qué poner                                                                        |
-| ------------ | -------------------------------------------------------------------------------- |
-| `SYNC_TOKEN` | Una clave larga al azar (por ejemplo, 40 letras y números). La pegarás en la PC. |
-| `JWT_SECRET` | Otra clave larga distinta. Sirve para las sesiones del teléfono.                 |
+| Secreto      | Qué poner                                                                                                          |
+| ------------ | ------------------------------------------------------------------------------------------------------------------ |
+| `SYNC_TOKEN` | Una clave larga al azar (por ejemplo, 40 letras y números). La pegarás en cada PC, una sola vez, para registrarla. |
+| `JWT_SECRET` | Otra clave larga distinta. Sirve para las sesiones del teléfono.                                                   |
 
 Anota el `SYNC_TOKEN` antes de continuar.
 
@@ -35,11 +36,13 @@ Al terminar verás una dirección como `https://bllt-pwa.tu-usuario.workers.dev`
 
 ## 4. Pégala en la PC
 
-En Bllt: **Configuración → Nube**. Pega la URL y el `SYNC_TOKEN`, pulsa **Probar conexión** para comprobarlos y luego **Guardar**.
+En Bllt: **Configuración → Nube**. Pega la URL y el `SYNC_TOKEN`, ponle un nombre a esta PC (por ejemplo “Caja 1”), pulsa **Probar conexión** para comprobarlos y luego **Conectar**. Bllt registra la PC, le da una letra de serie para sus facturas y sube todos tus datos una sola vez; verás el avance en el inicio.
+
+Desde ese momento esta PC usa su propia clave y el `SYNC_TOKEN` ya no se guarda en ella.
 
 ![Configuración, pestaña Nube](/capturas/14-cloud.png)
 
-En el inicio verás “Sincronizado hace 1 min”. Si la conexión cae, los cambios se acumulan y suben solos al volver.
+En el inicio verás “Todo al día”, con cuándo subió y bajó por última vez. Si la conexión cae, los cambios se acumulan y suben solos al volver.
 
 ## 5. El nombre de tu negocio en el teléfono
 
@@ -50,6 +53,10 @@ El nombre bajo el icono se fija al instalar la app: si lo cambias después, bór
 ## 6. Instala la app en el teléfono
 
 Sigue la guía [Instalar en el teléfono](/docs/guias/telefono).
+
+## 7. ¿Tienes otra PC?
+
+Sigue la guía [Usar varias PCs](/docs/guias/varias-pcs).
 
 ## Actualizaciones
 

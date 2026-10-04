@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { Button, Card } from '@bllt/ui'
+  import type { DeviceDto } from '@bllt/shared'
+  import { Alert, Button, Card } from '@bllt/ui'
   import CloudIcon from '@lucide/svelte/icons/cloud'
   import CloudOffIcon from '@lucide/svelte/icons/cloud-off'
   import RefreshIcon from '@lucide/svelte/icons/refresh-cw'
@@ -12,17 +13,28 @@
   import { dashboardApi } from '../api'
 
   let status = $state<SyncStatus | null>(null)
+  let devices = $state<DeviceDto[]>([])
   let now = $state(new Date())
+
+  const others = $derived(devices.filter((d) => d.series !== status?.series))
 
   onMount(() => {
     void dashboardApi.syncStatus().then((s) => (status = s))
-    const off = window.api.events.onSyncStatus((s) => (status = s))
+    const off = window.api.events.onSyncStatus((s) => {
+      status = s
+      void loadDevices()
+    })
+    void loadDevices()
     const tick = setInterval(() => (now = new Date()), 30_000)
     return () => {
       off()
       clearInterval(tick)
     }
   })
+
+  async function loadDevices() {
+    devices = (await attempt(() => dashboardApi.devices())) ?? []
+  }
 
   async function syncNow() {
     const s = await attempt(() => dashboardApi.syncNow())
@@ -54,12 +66,13 @@
       </Card.Action>
     {/if}
   </Card.Header>
-  <Card.Content class="space-y-1 text-sm">
+  <Card.Content class="space-y-2 text-sm">
     {#if !status}
       <p class="text-muted-foreground">…</p>
     {:else if !status.configured}
       <p class="text-muted-foreground">
-        Sin nube: todo funciona igual, solo que no verás el resumen en el teléfono.
+        Sin nube: todo funciona igual, solo que no verás el resumen en el teléfono ni los datos de
+        otras PCs.
       </p>
       {#if session.isAdmin}
         <Button
@@ -72,29 +85,53 @@
       {/if}
     {:else}
       <p class="font-medium">
-        {#if status.pending > 0}
+        {#if status.revoked}
+          Esta PC fue desactivada
+        {:else if status.pending > 0}
           {plural(status.pending, 'cambio pendiente', 'cambios pendientes')} por subir
         {:else if status.lastSyncAt}
-          Sincronizado {formatRelative(status.lastSyncAt, now)}
+          Todo al día
         {:else}
           Aún no se ha sincronizado
         {/if}
       </p>
+      {#if status.uploadTotal && status.pending > 0}
+        <p class="text-muted-foreground text-xs">
+          Subida inicial: {Math.max(status.uploadTotal - status.pending, 0)} de {status.uploadTotal}
+          registros
+        </p>
+      {/if}
+      <dl class="text-muted-foreground grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-xs">
+        <dt>Subió</dt>
+        <dd>{status.lastPushAt ? formatRelative(status.lastPushAt, now) : 'todavía no'}</dd>
+        <dt>Bajó</dt>
+        <dd>
+          {status.lastPullAt ? formatRelative(status.lastPullAt, now) : 'todavía no'}
+          {#if status.pendingDown}· faltan {plural(status.pendingDown, 'cambio', 'cambios')}{/if}
+        </dd>
+      </dl>
+      {#each others as device (device.id)}
+        <p class="text-xs">
+          <strong>{device.name}</strong>
+          <span class="text-muted-foreground">
+            · datos hasta {device.lastSeenAt ? formatRelative(device.lastSeenAt, now) : 'nunca'}
+            {#if !device.active}· desactivada{/if}
+          </span>
+        </p>
+      {/each}
       {#if status.lastError}
-        <p class="text-destructive text-xs">{status.lastError}. Se reintentará solo.</p>
+        <Alert.Root variant="destructive">
+          <Alert.Description>{status.lastError}. Se reintentará solo.</Alert.Description>
+        </Alert.Root>
       {:else if status.workerOutdated}
         <p class="text-gold text-xs">
-          Tu Worker es de una versión anterior y algunos cambios esperan a que lo actualices.
+          Tu Worker es de una versión anterior y no puede sincronizar hasta que lo actualices.
           <a
             class="underline"
             href="https://bllt.juanl.dev/docs/guias/actualizar-nube"
             target="_blank"
             rel="noreferrer">Cómo actualizarlo</a
           >
-        </p>
-      {:else if status.pending > 0 && status.lastSyncAt}
-        <p class="text-muted-foreground text-xs">
-          Último envío {formatRelative(status.lastSyncAt, now)}
         </p>
       {/if}
     {/if}

@@ -102,6 +102,7 @@ export const backupService = {
     closeDatabase()
     for (const suffix of ['-wal', '-shm']) rmSync(paths.database + suffix, { force: true })
     copyFileSync(file, paths.database)
+    backupRepository.markRestored(paths.database)
     app.relaunch()
     app.exit(0)
   },

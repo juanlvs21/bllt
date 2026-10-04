@@ -17,6 +17,7 @@ import { transaction } from '../../core/db'
 import { broadcast } from '../../core/ipc'
 import { fetchPublicRate } from '../../libs/rate-providers'
 import { SettingKey, settingsService } from '../settings/settings.service'
+import { deviceService } from '../devices/device.service'
 import { syncService } from '../sync/sync.service'
 import { rateRepository } from './rate.repository'
 
@@ -130,7 +131,8 @@ export const rateService = {
         bsPerUsd: input.bsPerUsd,
         source: input.source,
         confirmedBy: user.id,
-        confirmedAt: nowIso()
+        confirmedAt: nowIso(),
+        updatedByDevice: deviceService.id()
       })
       syncService.enqueue(OutboxEntity.EXCHANGE_RATE, saved.date, saved)
       return saved

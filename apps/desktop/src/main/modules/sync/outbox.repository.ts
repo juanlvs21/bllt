@@ -1,4 +1,5 @@
 import { and, asc, count, eq, inArray, isNull, notInArray } from 'drizzle-orm'
+import { sql } from 'drizzle-orm'
 import type { OutboxEntity } from '@bllt/shared'
 import { db, schema } from '../../core/db'
 
@@ -51,5 +52,23 @@ export const outboxRepository = {
   markSent(ids: string[], sentAt: string) {
     if (ids.length === 0) return
     db().update(schema.outbox).set({ sentAt }).where(inArray(schema.outbox.id, ids)).run()
+  },
+  /** Removes unsent rows of these entities: the full upload rebuilds them from the tables. */
+  discardPending(entities: OutboxEntity[]) {
+    db()
+      .delete(schema.outbox)
+      .where(and(isNull(schema.outbox.sentAt), inArray(schema.outbox.entity, entities)))
+      .run()
+  },
+  /** The queue from before the sync between PCs, kept until the first full upload is confirmed. */
+  dropLegacy() {
+    db().run(sql`DROP TABLE IF EXISTS outbox_legacy`)
+  },
+  /** Sent rows are only history; they go after a while so the table stays small. */
+  prune(before: string) {
+    db()
+      .delete(schema.outbox)
+      .where(sql`${schema.outbox.sentAt} is not null and ${schema.outbox.sentAt} < ${before}`)
+      .run()
   }
 }

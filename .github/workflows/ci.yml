@@ -25,5 +25,6 @@ jobs:
           ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
       - run: pnpm -r typecheck
       - run: pnpm --filter @bllt/shared test
+      - run: pnpm --filter @bllt/worker test
       - run: pnpm --filter @bllt/web build
       - run: pnpm --filter @bllt/site build

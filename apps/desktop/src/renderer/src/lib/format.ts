@@ -6,6 +6,7 @@ export {
   formatBusinessDateTime,
   formatBusinessTime,
   formatRelative,
+  formatSaleNumber,
   usdCentsToBsCents
 } from '@bllt/shared'
 

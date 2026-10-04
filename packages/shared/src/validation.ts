@@ -167,7 +167,8 @@ export const setupInput = z.object({
   username: usernameSchema,
   password: passwordSchema,
   workerUrl: z.url().optional().or(z.literal('')),
-  syncToken: z.string().trim().max(512).optional()
+  syncToken: z.string().trim().max(512).optional(),
+  deviceName: z.string().trim().max(60).optional()
 })
 export type SetupInput = z.infer<typeof setupInput>
 export type SetupInputRaw = z.input<typeof setupInput>
@@ -192,9 +193,12 @@ export const changePasswordInput = z.object({ current: z.string().min(1), next: 
 
 export const cloudSettingsInput = z.object({
   workerUrl: z.url('URL inválida').or(z.literal('')),
-  syncToken: z.string().trim().max(512)
+  syncToken: z.string().trim().max(512),
+  /** Name of this PC, shown to the other PCs ("Caja 1"). */
+  deviceName: z.string().trim().max(60).default('')
 })
-export type CloudSettingsInput = z.infer<typeof cloudSettingsInput>
+export type CloudSettingsInput = z.output<typeof cloudSettingsInput>
+export type CloudSettingsInputRaw = z.input<typeof cloudSettingsInput>
 
 export const exportInput = z
   .object({ from: isoDate, to: isoDate, format: z.enum(EXPORT_FORMATS) })

@@ -50,8 +50,8 @@
     <Card.Header>
       <Card.Title>Respaldos automáticos</Card.Title>
       <Card.Description>
-        Se crea uno al abrir Bllt por primera vez cada día. Se guardan los últimos 7 días.
-        Copia la carpeta a un pendrive de vez en cuando.
+        Se crea uno al abrir Bllt por primera vez cada día. Se guardan los últimos 7 días. Copia la
+        carpeta a un pendrive de vez en cuando.
       </Card.Description>
     </Card.Header>
     <Card.Content class="space-y-4">
@@ -138,7 +138,8 @@
         Los datos actuales se reemplazan por los del respaldo{restoreTarget
           ? ` del ${formatBusinessDateTime(restoreTarget.createdAt)}`
           : ''}. Antes se guarda una copia de la base actual en la carpeta de respaldos. Bllt se
-        reiniciará.
+        reiniciará. Lo que esta PC no había subido a la nube antes de ese respaldo se pierde; lo que
+        ya estaba en la nube se vuelve a descargar.
       </AlertDialog.Description>
     </AlertDialog.Header>
     <AlertDialog.Footer>

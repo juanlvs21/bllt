@@ -34,6 +34,8 @@
   /** The cart shaped as a sale, for the summary shown before registering it. */
   const draft = $derived<SaleDto>({
     id: '',
+    series: '',
+    deviceName: '',
     number: 0,
     customerId: cart.customer?.id ?? null,
     customerName: cart.customer?.name ?? null,
@@ -280,9 +282,7 @@
       <Button variant="outline" class="rounded-full" onclick={() => (confirmOpen = false)}>
         Volver
       </Button>
-      <Button class="rounded-full px-6" disabled={busy} onclick={checkout}>
-        Confirmar venta
-      </Button>
+      <Button class="rounded-full px-6" disabled={busy} onclick={checkout}>Confirmar venta</Button>
     </Dialog.Footer>
   </Dialog.Content>
 </Dialog.Root>

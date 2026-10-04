@@ -7,8 +7,14 @@
   import type { SaleDto } from '../../../../../types/api'
   import PageHeader from '../../../layout/PageHeader.svelte'
   import { attempt } from '../../../lib/api'
-  import { formatBusinessDate, formatBusinessTime, formatUsd } from '../../../lib/format'
+  import {
+    formatBusinessDate,
+    formatBusinessTime,
+    formatSaleNumber,
+    formatUsd
+  } from '../../../lib/format'
   import { router } from '../../../lib/router.svelte'
+  import { session } from '../../../lib/session.svelte'
   import { rateStore } from '../../rates/stores/rate.svelte'
   import RateSuggestionBanner from '../../rates/components/RateSuggestionBanner.svelte'
   import { salesApi } from '../../sales/api'
@@ -19,9 +25,15 @@
 
   let summary = $state<DashboardSummary | null>(null)
   let recent = $state<SaleDto[]>([])
+  let conflictCount = $state(0)
+  let negativeStock = $state(0)
 
   async function load() {
     summary = (await attempt(() => dashboardApi.summary())) ?? null
+    negativeStock = (await attempt(() => dashboardApi.negativeStock())) ?? 0
+    conflictCount = session.isAdmin
+      ? ((await attempt(() => dashboardApi.conflicts())) ?? []).length
+      : 0
     if (summary) {
       const date = summary.businessDate
       recent = (await attempt(() => salesApi.list({ from: date, to: date, limit: 8 }))) ?? []
@@ -66,6 +78,36 @@
     </Alert.Root>
   {/if}
   <RateSuggestionBanner />
+  {#if conflictCount > 0}
+    <Alert.Root>
+      <TriangleIcon />
+      <Alert.Title>La sincronización resolvió {conflictCount} casos por ti</Alert.Title>
+      <Alert.Description>
+        Por ejemplo, productos con el mismo código creados en dos PCs a la vez.
+        <Button
+          size="sm"
+          variant="outline"
+          class="mt-2 rounded-full"
+          onclick={() => router.go('settings', { tab: 'cloud' })}>Revisar</Button
+        >
+      </Alert.Description>
+    </Alert.Root>
+  {/if}
+  {#if negativeStock > 0}
+    <Alert.Root variant="destructive">
+      <TriangleIcon />
+      <Alert.Title>Hay {negativeStock} productos con inventario negativo</Alert.Title>
+      <Alert.Description>
+        Dos PCs vendieron la última unidad sin conexión. Cuenta el producto y ajusta el inventario.
+        <Button
+          size="sm"
+          variant="outline"
+          class="mt-2 rounded-full"
+          onclick={() => router.go('products')}>Ver productos</Button
+        >
+      </Alert.Description>
+    </Alert.Root>
+  {/if}
 
   {#if summary}
     <SummaryCards {summary} />
@@ -102,7 +144,9 @@
             <Table.Body>
               {#each recent as sale (sale.id)}
                 <Table.Row class={sale.status === 'VOIDED' ? 'opacity-50' : ''}>
-                  <Table.Cell class="tabular font-medium">#{sale.number}</Table.Cell>
+                  <Table.Cell class="tabular font-medium"
+                    >{formatSaleNumber(sale.series, sale.number)}</Table.Cell
+                  >
                   <Table.Cell>{formatBusinessTime(sale.createdAt)}</Table.Cell>
                   <Table.Cell>
                     {sale.customerName ?? 'Anónimo'}

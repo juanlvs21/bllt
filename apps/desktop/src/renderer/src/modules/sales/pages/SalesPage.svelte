@@ -5,7 +5,13 @@
   import type { SaleDto } from '../../../../../types/api'
   import PageHeader from '../../../layout/PageHeader.svelte'
   import { attempt } from '../../../lib/api'
-  import { formatBusinessDateTime, formatRate, formatUsd, plural } from '../../../lib/format'
+  import {
+    formatBusinessDateTime,
+    formatRate,
+    formatSaleNumber,
+    formatUsd,
+    plural
+  } from '../../../lib/format'
   import { router } from '../../../lib/router.svelte'
   import { salesApi } from '../api'
   import InvoiceDialog from '../components/InvoiceDialog.svelte'
@@ -134,7 +140,14 @@
                 open = true
               }}
             >
-              <Table.Cell class="tabular font-semibold">#{sale.number}</Table.Cell>
+              <Table.Cell class="tabular font-semibold">
+                {formatSaleNumber(sale.series, sale.number)}
+                {#if sale.deviceName}
+                  <span class="text-muted-foreground block text-xs font-normal">
+                    {sale.deviceName}
+                  </span>
+                {/if}
+              </Table.Cell>
               <Table.Cell>{formatBusinessDateTime(sale.createdAt)}</Table.Cell>
               <Table.Cell>
                 {sale.customerName ?? 'Anónimo'}

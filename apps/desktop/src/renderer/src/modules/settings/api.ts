@@ -1,4 +1,4 @@
-import type { CloudSettingsInput, ExportInput, UserCreateInput } from '@bllt/shared'
+import type { CloudSettingsInputRaw, ExportInput, UserCreateInput } from '@bllt/shared'
 import { api, unwrap } from '../../lib/api'
 
 export const settingsApi = {
@@ -14,8 +14,12 @@ export const settingsApi = {
   },
   cloud: {
     get: () => unwrap(api.sync.getSettings()),
-    save: (input: CloudSettingsInput) => unwrap(api.sync.saveSettings(input)),
-    test: (input: CloudSettingsInput) => unwrap(api.sync.test(input))
+    save: (input: CloudSettingsInputRaw) => unwrap(api.sync.saveSettings(input)),
+    test: (input: CloudSettingsInputRaw) => unwrap(api.sync.test(input)),
+    devices: () => unwrap(api.sync.devices()),
+    revokeDevice: (id: string) => unwrap(api.sync.revokeDevice(id)),
+    conflicts: () => unwrap(api.sync.conflicts()),
+    resolveConflict: (id: string) => unwrap(api.sync.resolveConflict(id))
   },
   backups: {
     list: () => unwrap(api.backups.list()),

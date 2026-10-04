@@ -5,6 +5,7 @@ import { mkdirSync } from 'node:fs'
 import { dirname } from 'node:path'
 import * as schema from '@bllt/shared/schema/desktop'
 import { paths } from './config'
+import { prepareDatabase } from './migrate'
 
 export type Db = BetterSQLite3Database<typeof schema>
 
@@ -19,7 +20,7 @@ export function openDatabase(file = paths.database): Db {
   sqlite.pragma('foreign_keys = ON')
   sqlite.pragma('busy_timeout = 5000')
   instance = drizzle(sqlite, { schema })
-  migrate(instance, { migrationsFolder: paths.migrations })
+  prepareDatabase(sqlite, () => migrate(instance!, { migrationsFolder: paths.migrations }))
   return instance
 }
 

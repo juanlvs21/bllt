@@ -63,13 +63,22 @@ export const productRepository = {
   update(id: string, patch: Partial<Omit<ProductRow, 'id'>>): ProductRow {
     return db().update(products).set(patch).where(eq(products.id, id)).returning().get()
   },
-  /** Relative stock change; returns the updated row. */
-  addStock(id: string, delta: number, updatedAt: string): ProductRow {
+  allByCode(code: string): ProductRow[] {
     return db()
-      .update(products)
-      .set({ stock: sql`${products.stock} + ${delta}`, updatedAt })
-      .where(eq(products.id, id))
-      .returning()
-      .get()
+      .select()
+      .from(products)
+      .where(sql`lower(${products.code}) = ${code.toLowerCase()}`)
+      .orderBy(asc(products.id))
+      .all()
+  },
+  /** Products with less than nothing: two PCs sold the last unit while offline. */
+  countNegative(): number {
+    return (
+      db()
+        .select({ n: count() })
+        .from(products)
+        .where(sql`${products.stock} < 0`)
+        .get()?.n ?? 0
+    )
   }
 }

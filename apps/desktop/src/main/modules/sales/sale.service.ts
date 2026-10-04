@@ -7,6 +7,7 @@ import {
   OutboxEntity,
   Role,
   SaleStatus,
+  StockReason,
   type SaleInput,
   type SaleItemRow,
   type SaleRow,
@@ -16,11 +17,13 @@ import {
 import type { SaleDto, SalePage, SessionUser } from '../../../types/api'
 import { transaction } from '../../core/db'
 import { forbidden, notFound } from '../../core/errors'
-import { newId } from '../../utils/id'
+import { deterministicId, newId } from '../../utils/id'
 import { pageWindow } from '../../utils/page'
 import { customerService } from '../customers/customer.service'
+import { deviceService } from '../devices/device.service'
 import { productService } from '../products/product.service'
 import { rateService } from '../rates/rate.service'
+import { stockService } from '../stock/stock.service'
 import { syncService } from '../sync/sync.service'
 import { saleRepository, type SaleListFilter } from './sale.repository'
 
@@ -33,10 +36,12 @@ function load(filter: SaleListFilter): SaleDto[] {
     list.push(item)
     bySale.set(item.saleId, list)
   }
+  const deviceNames = new Map(deviceService.list().map((d) => [d.series, d.name]))
   return rows.map(({ sale, customerName, customerDocument, username }) => {
     const saleItems = bySale.get(sale.id) ?? []
     return {
       ...sale,
+      deviceName: deviceNames.get(sale.series) ?? '',
       customerName,
       customerDocument,
       username,
@@ -100,9 +105,11 @@ export const saleService = {
         })
       }
 
+      const series = deviceService.series()
       const sale: SaleRow = {
         id: saleId,
-        number: saleRepository.nextNumber(),
+        series,
+        number: saleRepository.nextNumber(series),
         customerId: input.customerId,
         userId: user.id,
         rate: rate.bsPerUsd,
@@ -113,8 +120,15 @@ export const saleService = {
         voidedBy: null
       }
       saleRepository.insert(sale, items)
-      for (const item of items)
-        productService.applyStockChange(item.productId, -item.qty, createdAt)
+      for (const item of items) {
+        stockService.record({
+          productId: item.productId,
+          delta: -item.qty,
+          reason: StockReason.SALE,
+          refId: item.id,
+          at: createdAt
+        })
+      }
       snapshot(sale)
       return saleId
     })
@@ -155,7 +169,15 @@ export const saleService = {
         voidedBy: user.id
       })
       for (const item of saleRepository.itemsFor([id])) {
-        productService.applyStockChange(item.productId, item.qty, at)
+        // Same id on every PC: if two PCs void the sale, the stock comes back only once.
+        stockService.record({
+          id: deterministicId(`${item.id}:${StockReason.VOID}`),
+          productId: item.productId,
+          delta: item.qty,
+          reason: StockReason.VOID,
+          refId: item.id,
+          at
+        })
       }
       snapshot(sale)
     })
