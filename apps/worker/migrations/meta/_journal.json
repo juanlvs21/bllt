@@ -15,6 +15,20 @@
       "when": 1790562646801,
       "tag": "0001_rate_decisions",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1791123698783,
+      "tag": "0002_grey_sleeper",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1791124104383,
+      "tag": "0003_brown_marauders",
+      "breakpoints": true
     }
   ]
 }

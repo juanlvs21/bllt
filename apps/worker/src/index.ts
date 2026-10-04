@@ -6,6 +6,8 @@ import type { AppContext, Env } from './core/env'
 import { onError } from './core/errors'
 import { businessName, serveManifest } from './modules/pwa/pwa.service'
 import { authRoutes } from './modules/auth/auth.routes'
+import { businessRoutes } from './modules/business/business.routes'
+import { deviceRoutes } from './modules/devices/device.routes'
 import { rateRoutes } from './modules/rates/rate.routes'
 import { rateService } from './modules/rates/rate.service'
 import { summaryRoutes } from './modules/summary/summary.routes'
@@ -21,6 +23,8 @@ app.use('/rate', csrf())
 app.onError(onError)
 
 app.route('/sync', syncRoutes)
+app.route('/devices', deviceRoutes)
+app.route('/business', businessRoutes)
 app.route('/auth', authRoutes)
 app.route('/summary', summaryRoutes)
 app.route('/rate', rateRoutes)

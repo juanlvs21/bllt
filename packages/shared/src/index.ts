@@ -5,6 +5,8 @@ export * from './time'
 export * from './validation'
 export * from './sync'
 export * from './profit'
+export * from './lww'
+export * from './sale-number'
 export * from './password'
 export * from './rate-providers'
 export type {
@@ -13,6 +15,8 @@ export type {
   CustomerRow,
   ExchangeRateRow,
   SaleRow,
-  SaleItemRow
+  SaleItemRow,
+  StockMovementRow,
+  BusinessSettingRow
 } from './schema'
 export * from './web'

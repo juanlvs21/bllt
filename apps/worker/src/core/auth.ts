@@ -3,6 +3,7 @@ import { getCookie } from 'hono/cookie'
 import { createMiddleware } from 'hono/factory'
 import { verify } from 'hono/jwt'
 import { userService } from '../modules/auth/user.service'
+import { deviceService } from '../modules/devices/device.service'
 import type { AppContext } from './env'
 
 export const SESSION_COOKIE = 'bllt_session'
@@ -14,6 +15,21 @@ export const requireSyncToken = createMiddleware<AppContext>(async (c, next) => 
   if (!c.env.SYNC_TOKEN || !(await safeEqual(token, c.env.SYNC_TOKEN))) {
     throw new DomainError(ErrorCode.UNAUTHORIZED, 'Token de sincronización inválido')
   }
+  await next()
+})
+
+/**
+ * Desktop → Worker: every PC has its own token, so a stolen PC is deactivated alone. Only the
+ * SHA-256 of each token is stored. A deactivated or unknown token is a 401.
+ */
+export const requireDevice = createMiddleware<AppContext>(async (c, next) => {
+  const header = c.req.header('authorization') ?? ''
+  const token = header.startsWith('Bearer ') ? header.slice(7) : ''
+  const device = token ? await deviceService.authenticate(c.env.DB, token) : null
+  if (!device) {
+    throw new DomainError(ErrorCode.UNAUTHORIZED, 'Esta PC no está autorizada o fue desactivada')
+  }
+  c.set('device', { id: device.id, series: device.series })
   await next()
 })
 

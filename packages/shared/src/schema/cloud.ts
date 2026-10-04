@@ -1,6 +1,6 @@
 /** D1-only tables on top of the shared schema. */
-import { index, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
-import { RATE_DECISIONS, RATE_SOURCES } from '../enums'
+import { index, integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core'
+import { OUTBOX_ENTITIES, RATE_DECISIONS, RATE_SOURCES } from '../enums'
 
 export * from './index'
 
@@ -38,6 +38,41 @@ export const loginAttempts = sqliteTable(
     at: text('at').notNull()
   },
   (t) => [index('login_attempts_key_idx').on(t.key, t.at)]
+)
+
+/** PCs of the business. Each one has its own token; only its hash is stored. */
+export const devices = sqliteTable(
+  'devices',
+  {
+    id: text('id').primaryKey(),
+    name: text('name').notNull(),
+    /** One letter, unique among devices: the series of the invoices this PC issues. */
+    series: text('series').notNull(),
+    tokenHash: text('token_hash').notNull(),
+    active: integer('active', { mode: 'boolean' }).notNull().default(true),
+    createdAt: text('created_at').notNull(),
+    lastSeenAt: text('last_seen_at')
+  },
+  (t) => [
+    uniqueIndex('devices_series_unique').on(t.series),
+    index('devices_token_idx').on(t.tokenHash)
+  ]
+)
+
+/**
+ * Pull cursor: one row per accepted push message. `seq` is assigned by the server, so the PCs'
+ * clocks never decide what to download. The pull reads the current state of each row.
+ */
+export const changes = sqliteTable(
+  'changes',
+  {
+    seq: integer('seq').primaryKey({ autoIncrement: true }),
+    entity: text('entity', { enum: OUTBOX_ENTITIES }).notNull(),
+    entityId: text('entity_id').notNull(),
+    deviceId: text('device_id').notNull(),
+    createdAt: text('created_at').notNull()
+  },
+  (t) => [index('changes_device_idx').on(t.deviceId, t.seq)]
 )
 
 export type RateCandidateRow = typeof rateCandidates.$inferSelect
