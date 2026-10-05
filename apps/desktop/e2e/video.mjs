@@ -1,7 +1,9 @@
 /**
  * Demo video for the landing page: log in, confirm today's rate, create a
  * product and sell it, ending on the PDF receipt. Runs over the demo store
- * (scripts/seed-demo.mjs) and needs ffmpeg on the PATH.
+ * (scripts/seed-demo.mjs) and needs ffmpeg on the PATH. The PC is connected to a local Worker
+ * with a fresh database (`pnpm --filter @bllt/worker dev`) and a second PC has joined, so the
+ * video also shows the cloud: set BLLT_E2E_WORKER (URL) and BLLT_E2E_TOKEN (its SYNC_TOKEN).
  * Output: apps/site/static/video/demo.mp4, demo.webm and demo.jpg (poster).
  */
 import { _electron as electron } from 'playwright-core'
@@ -11,6 +13,10 @@ import { mkdirSync, mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
+
+const workerUrl = process.env.BLLT_E2E_WORKER
+const workerToken = process.env.BLLT_E2E_TOKEN
+if (!workerUrl || !workerToken) throw new Error('Faltan BLLT_E2E_WORKER y BLLT_E2E_TOKEN')
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const out = join(root, '..', 'site', 'static', 'video')
@@ -25,11 +31,11 @@ const H = 820
 const VIEWER = { width: 760, height: H }
 const RATE = 855.6625
 
-const launch = async (recordVideo) => {
+const launch = async (recordVideo, dir = userData) => {
   const app = await electron.launch({
     args: [root],
     cwd: root,
-    env: { ...process.env, BLLT_USER_DATA_DIR: userData, BLLT_DOCUMENTS_DIR: data },
+    env: { ...process.env, BLLT_USER_DATA_DIR: dir, BLLT_DOCUMENTS_DIR: data },
     ...(recordVideo && { recordVideo: { dir: raw, size: { width: W, height: H } } })
   })
   const page = await app.firstWindow()
@@ -39,12 +45,20 @@ const launch = async (recordVideo) => {
     [W, H]
   )
   // Public API quotes come from a stub, so the suggested rate is the same on every run.
-  await app.evaluate(({ net }, promedio) => {
-    net.fetch = async () =>
-      new Response(JSON.stringify({ promedio, fechaActualizacion: new Date().toISOString() }), {
-        headers: { 'content-type': 'application/json' }
-      })
-  }, RATE)
+  await app.evaluate(
+    ({ net }, [promedio, workerUrl]) => {
+      const realFetch = net.fetch.bind(net)
+      net.fetch = async (input, init) => {
+        // The local Worker is the real one; only the public quotes are faked.
+        if (String(input?.url ?? input).startsWith(workerUrl)) return realFetch(input, init)
+        return new Response(
+          JSON.stringify({ promedio, fechaActualizacion: new Date().toISOString() }),
+          { headers: { 'content-type': 'application/json' } }
+        )
+      }
+    },
+    [RATE, workerUrl]
+  )
   return { app, page }
 }
 
@@ -136,6 +150,15 @@ const expect = async (locator, count) => {
     await new Promise((r) => setTimeout(r, 100))
   }
 }
+// Sync cycles through the app's own IPC until nothing is left to upload.
+const syncNow = async (page) => {
+  for (let i = 0; i < 100; i++) {
+    const r = await page.evaluate(() => window.api.sync.runNow())
+    if (r.ok && !r.data.running && !r.data.lastError && r.data.pending === 0) return
+    await page.waitForTimeout(300)
+  }
+  throw new Error('Sincronización incompleta')
+}
 const step = (label) => console.log(`✓ ${label}`)
 
 let app
@@ -175,6 +198,36 @@ try {
   )
   step('tienda de demo')
 
+  // Off camera: this PC connects and uploads the store, a second PC joins from scratch.
+  ;({ app, page } = await launch(false))
+  await page.getByLabel('Usuario').fill('dueno')
+  await page.getByLabel('Contraseña').fill('secreto123')
+  await page.getByRole('button', { name: 'Entrar' }).click()
+  await page.getByText('Confirma la tasa de hoy').waitFor()
+  const saved = await page.evaluate(
+    ([workerUrl, syncToken]) =>
+      window.api.sync.saveSettings({ workerUrl, syncToken, deviceName: 'Caja 1' }),
+    [workerUrl, workerToken]
+  )
+  if (!saved.ok) throw new Error(`No se pudo conectar: ${JSON.stringify(saved)}`)
+  await syncNow(page)
+  const second = await launch(false, join(data, 'userData-2'))
+  const b = second.page
+  await b.getByLabel('URL del Worker').fill(workerUrl)
+  await b.getByLabel('SYNC_TOKEN').fill(workerToken)
+  await b.getByLabel('Nombre de esta PC').fill('Caja 2')
+  await b.getByRole('button', { name: 'Conectar', exact: true }).click()
+  await b.getByRole('heading', { name: 'Iniciar sesión' }).waitFor({ timeout: 60_000 })
+  await b.getByLabel('Usuario').fill('dueno')
+  await b.getByLabel('Contraseña').fill('secreto123')
+  await b.getByRole('button', { name: 'Entrar' }).click()
+  await b.getByText('Confirma la tasa de hoy').waitFor({ timeout: 30_000 })
+  await syncNow(b)
+  await second.app.close()
+  await syncNow(page)
+  await app.close()
+  step('nube y segunda PC')
+
   ;({ app, page } = await launch(true))
   await showCursor(page)
   await page.getByLabel('Usuario').waitFor()
@@ -195,6 +248,30 @@ try {
   await pause(page, 1800)
   const homeAt = Date.now() - 300
   step('tasa del día')
+
+  // The cloud: this PC is up to date and the second one shows in the list.
+  // Confirming the rate left one change to upload.
+  await syncNow(page)
+  await page.getByText('Todo al día').waitFor()
+  await pause(page, 2200)
+  await click(page, page.getByRole('button', { name: 'Configuración' }))
+  await click(page, page.getByRole('tab', { name: 'Nube' }))
+  await page.getByRole('cell', { name: /Caja 2/ }).waitFor()
+  // Show a workers.dev address instead of the local one.
+  await page.evaluate(
+    ([from, to]) => {
+      const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT)
+      while (walker.nextNode()) {
+        const node = walker.currentNode
+        if (node.nodeValue?.includes(from)) node.nodeValue = node.nodeValue.replace(from, to)
+      }
+    },
+    [workerUrl, 'https://bodega-la-esquina.workers.dev']
+  )
+  await pause(page, 3200)
+  await click(page, page.getByRole('button', { name: 'Inicio' }))
+  await pause(page, 600)
+  step('nube')
 
   await click(page, page.getByRole('button', { name: 'Productos' }))
   await page.getByRole('cell', { name: 'Arroz blanco 1 kg' }).waitFor()
