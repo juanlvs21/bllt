@@ -16,6 +16,8 @@ Cada PC sigue funcionando **sin internet**. Cuando hay conexión, sube lo que hi
 4. **Espera a que el inicio diga “Todo al día”** y no queden cambios por subir. Mientras tanto no hay prisa: esa PC funciona igual que siempre.
 5. **Instala Bllt en la segunda PC.** En la primera pantalla pega la URL y el `SYNC_TOKEN`, ponle un nombre (“Caja 2”) y pulsa **Conectar**. Descarga todo con una barra de avance y te lleva al inicio de sesión. Entra con tus usuarios de siempre.
 
+![Primera pantalla de Bllt en una segunda PC, con la URL del Worker, el SYNC_TOKEN y el nombre de la PC](/capturas/17-join-pc.png)
+
 > Si la segunda PC intenta conectarse mientras la primera sigue subiendo, Bllt te pide esperar: así no baja datos a medias.
 
 ## Qué pasa cuando las dos trabajan a la vez
@@ -35,7 +37,11 @@ Cada PC sigue funcionando **sin internet**. Cuando hay conexión, sube lo que hi
 
 En el **Inicio**, la tarjeta de la nube dice cuándo subió y bajó esta PC por última vez, cuántos cambios faltan en cada sentido y hasta cuándo llegaron los datos de las otras PCs (“Caja 2: datos hasta hace 2 h”).
 
+![Tarjeta de la nube en el inicio: todo al día, cuándo subió y bajó, y hasta cuándo llegaron los datos de Caja 2](/capturas/18-sync-status.png)
+
 En **Configuración → Nube** (solo administradores) ves la lista de PCs con su serie y última conexión, y los avisos de casos que Bllt resolvió solo.
+
+![Configuración, pestaña Nube, con Caja 1 y Caja 2 conectadas](/capturas/14-cloud.png)
 
 ## Si pierdes o te roban una PC
 

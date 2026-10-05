@@ -77,7 +77,7 @@ pnpm format
 
 1. `pnpm typecheck` sin errores.
 2. `pnpm --filter @bllt/shared test` si tocaste `packages/shared`.
-3. `pnpm --filter @bllt/desktop test:e2e` si tocaste flujos del escritorio (venta, tasa, usuarios, respaldos, sync).
+3. `pnpm --filter @bllt/desktop test:e2e` si tocaste flujos del escritorio (venta, tasa, usuarios, respaldos, sync). Para el sync entre PCs, `e2e/multi.mjs` contra un Worker local (ver ARCHITECTURE.md).
 4. Si cambió algo que ve el usuario, actualiza la guía correspondiente en `apps/site/src/content/docs/`. Si cambió la arquitectura, actualiza ARCHITECTURE.md.
 5. Informa qué comprobaste y qué no pudiste probar.
 

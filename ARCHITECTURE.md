@@ -242,6 +242,7 @@ La auth está hecha a mano, sin librerías externas. Hay dos credenciales distin
 
 - `pnpm --filter @bllt/shared test`: pruebas unitarias con Vitest de dinero, hora, ganancias, contraseñas y la regla de "gana el último".
 - `pnpm --filter @bllt/worker test`: pruebas del Worker con Vitest sobre un D1 de mentira hecho con `node:sqlite` y las migraciones reales (dispositivos, "gana el último", ventas y stock, pull).
+- `pnpm --filter @bllt/desktop capturas` conecta dos PCs a un Worker local (mismas variables) para fotografiar la nube y la segunda PC.
 - `pnpm --filter @bllt/desktop test:data`: migra una base de la versión anterior y aplica cambios de otra PC con el código real, bajo Electron-como-Node (por el ABI de `better-sqlite3`).
 - `pnpm --filter @bllt/desktop test:e2e`: prueba de humo con Playwright (`_electron`) sobre la app construida. Recorre primer arranque, tasa, productos, venta, dashboard y respaldo. Con `BLLT_E2E_WORKER` y `BLLT_E2E_TOKEN` prueba también la conexión a un Worker local. `e2e/multi.mjs` levanta dos PCs contra un Worker local con la base vacía: una conecta, la otra se une, venden las dos y se comprueban stock, series, anulaciones y la desactivación de una PC.
 - `ci.yml`: typecheck de todos los paquetes, pruebas de `shared` y builds de `web` y `site` en cada PR y push a `main`.

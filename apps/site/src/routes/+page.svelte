@@ -39,8 +39,8 @@
     },
     {
       icon: SmartphoneIcon,
-      title: 'Resumen en el teléfono',
-      text: 'Opcional y gratis con Cloudflare: ganancias y tasa desde cualquier lado.'
+      title: 'Varias PCs y teléfono',
+      text: 'Opcional y gratis con Cloudflare: las mismas ventas e inventario en varias PCs, y el resumen en el teléfono.'
     }
   ]
 
@@ -210,9 +210,10 @@
       class="bg-primary text-primary-foreground flex flex-wrap items-center justify-between gap-6 rounded-3xl p-10"
     >
       <div>
-        <h2 class="text-2xl font-bold">¿Quieres ver el día desde el teléfono?</h2>
+        <h2 class="text-2xl font-bold">¿Más de una PC, o ver el día desde el teléfono?</h2>
         <p class="text-primary-foreground/80 mt-1">
-          Despliega tu propia nube gratis en Cloudflare con un botón.
+          Despliega tu propia nube gratis en Cloudflare con un botón: cada PC sigue funcionando sin
+          internet y se pone al día sola.
         </p>
       </div>
       <Button href="/docs/nube" variant="secondary" class="h-11 rounded-full px-6"

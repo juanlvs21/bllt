@@ -33,7 +33,7 @@
   <img src="apps/site/static/capturas/08-dashboard.png" alt="Dashboard de Bllt" width="820" />
 </p>
 
-**Bllt** (se lee “billete”) es una app de escritorio open source para que un negocio pequeño en Venezuela controle inventario, ventas y clientes en USD, registrando la tasa BCV de cada venta. Funciona 100% sin internet; la nube es opcional y solo sirve para ver el resumen y sugerir la tasa desde el teléfono.
+**Bllt** (se lee “billete”) es una app de escritorio open source para que un negocio pequeño en Venezuela controle inventario, ventas y clientes en USD, registrando la tasa BCV de cada venta. Funciona 100% sin internet; la nube es opcional y sirve para usar **varias PCs con los mismos datos**, ver el resumen y sugerir la tasa desde el teléfono.
 
 ## Capturas
 
@@ -42,6 +42,8 @@
 | <img src="apps/site/static/capturas/03-rate.png" alt="Confirmar la tasa del día" /> | <img src="apps/site/static/capturas/05-products.png" alt="Inventario de productos" /> |
 | **Nueva venta** | **Factura** |
 | <img src="apps/site/static/capturas/06-new-sale.png" alt="Registrar una venta" /> | <img src="apps/site/static/capturas/07-invoice.png" alt="Factura de una venta" /> |
+| **Varias PCs** | **Estado de la nube** |
+| <img src="apps/site/static/capturas/14-cloud.png" alt="Configuración, pestaña Nube, con las PCs del negocio" /> | <img src="apps/site/static/capturas/18-sync-status.png" alt="Tarjeta de sincronización en el inicio" /> |
 
 ## Documentación
 
@@ -54,13 +56,14 @@ Guías completas en [bllt.juanl.dev](https://bllt.juanl.dev):
 - [Usuarios y roles](https://bllt.juanl.dev/docs/guias/usuarios)
 - [Respaldos](https://bllt.juanl.dev/docs/guias/respaldos)
 - [Exportar ventas](https://bllt.juanl.dev/docs/guias/exportar)
-- [Nube en Cloudflare (opcional)](https://bllt.juanl.dev/docs/nube), [instalar en el teléfono](https://bllt.juanl.dev/docs/guias/telefono) y [si pierdes el teléfono](https://bllt.juanl.dev/docs/guias/telefono-perdido)
+- [Nube en Cloudflare (opcional)](https://bllt.juanl.dev/docs/nube) y [usar varias PCs](https://bllt.juanl.dev/docs/guias/varias-pcs)
+- [Instalar en el teléfono](https://bllt.juanl.dev/docs/guias/telefono) y [si pierdes el teléfono](https://bllt.juanl.dev/docs/guias/telefono-perdido)
 
 ## Nube opcional
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/juanlvs21/bllt/tree/cloud)
 
-El botón despliega la rama `cloud`, que CI publica desde el último tag estable `vX.Y.Z`, igual que el instalador del escritorio, para que los negocios nunca corran código sin release (`scripts/cloud-branch.mjs`, workflow `cloud-branch.yml`; un push a `main` solo comprueba que compila): un workspace recortado con `apps/worker`, `apps/web`, `packages/shared` y `packages/ui`, y `wrangler.jsonc` en la raíz, porque el botón copia un solo directorio al repo nuevo. Incluye la API (Hono + D1), el cron de la tasa y la PWA del teléfono. Pide dos secretos, `SYNC_TOKEN` y `JWT_SECRET`. El nombre del negocio en la PWA es el del escritorio: se sincroniza como una entidad más del outbox, la PWA lo pide a `/api/business` y el Worker lo pone en el manifest. Guía: [bllt.juanl.dev/docs/nube](https://bllt.juanl.dev/docs/nube).
+El botón despliega la rama `cloud`, que CI publica desde el último tag estable `vX.Y.Z`, igual que el instalador del escritorio, para que los negocios nunca corran código sin release (`scripts/cloud-branch.mjs`, workflow `cloud-branch.yml`; un push a `main` solo comprueba que compila): un workspace recortado con `apps/worker`, `apps/web`, `packages/shared` y `packages/ui`, y `wrangler.jsonc` en la raíz, porque el botón copia un solo directorio al repo nuevo. Incluye la API (Hono + D1), el cron de la tasa y la PWA del teléfono. Pide dos secretos, `SYNC_TOKEN` y `JWT_SECRET`. Con ella, varias PCs del mismo negocio comparten productos, clientes, usuarios, ventas e inventario: cada una sigue funcionando sin internet, sube sus cambios al Worker y baja los de las demás. Una segunda PC se une desde su primera pantalla y carga todo sin repetir la configuración; cada PC tiene su token y su serie de factura (`A-000123`, `B-000045`). Guía: [Usar varias PCs](https://bllt.juanl.dev/docs/guias/varias-pcs). El nombre del negocio en la PWA es el del escritorio: se sincroniza como una entidad más del outbox, la PWA lo pide a `/api/business` y el Worker lo pone en el manifest. Guía: [bllt.juanl.dev/docs/nube](https://bllt.juanl.dev/docs/nube).
 
 ## Monorepo
 
@@ -93,8 +96,9 @@ pnpm install
 | `pnpm typecheck` | Tipos en todos los paquetes |
 | `pnpm --filter @bllt/shared test` | Pruebas de dinero, hora, ganancias y contraseñas |
 | `pnpm --filter @bllt/desktop test:e2e` | Prueba de humo con Playwright sobre la app construida (primer arranque → tasa → productos → venta → dashboard → respaldo). Con `BLLT_E2E_WORKER=http://localhost:8787` también prueba el sync |
+| `node apps/desktop/e2e/multi.mjs` | Dos PCs contra un Worker local con base vacía (`BLLT_E2E_WORKER` y `BLLT_E2E_TOKEN`; construye antes con `pnpm --filter @bllt/desktop build`): unirse, vender en las dos, anular y desactivar una PC |
 | `pnpm --filter @bllt/desktop seed:demo` | Llena la base local con datos de demo (40 productos, 38 clientes, tasas y ~90 días de ventas). Cierra Bllt antes; `--reset` reemplaza los datos, `--help` muestra las opciones. Guarda una copia de la base antes de escribir y no toca el outbox |
-| `pnpm --filter @bllt/desktop capturas` | Regenera las capturas del README y la landing (`apps/site/static/capturas`) sobre una base temporal con los datos de demo |
+| `pnpm --filter @bllt/desktop capturas` | Regenera las capturas del README y la landing (`apps/site/static/capturas`) sobre una base temporal con los datos de demo. Necesita un Worker local con base vacía (`BLLT_E2E_WORKER` y `BLLT_E2E_TOKEN`) para las capturas de la nube |
 | `pnpm --filter @bllt/desktop build:win` | Instalador NSIS |
 
 ## Decisiones clave
@@ -103,7 +107,7 @@ Resumen de lo esencial. El detalle (sync, tasa, autenticación, modelo de datos 
 
 - **Dinero:** USD en centavos (`INTEGER`), tasa como entero escalado a 4 decimales. Ganancia de una línea = `qty × (price − cost)`; en Bs se multiplica por la tasa de su propia venta. Se calcula solo en `@bllt/shared` (`summarizeProfit`), así el escritorio y el teléfono muestran el mismo número.
 - **Hora:** todo “día de negocio” se calcula en UTC−4 desde UTC con `businessDate()`, nunca con la zona de la PC.
-- **Sync:** outbox en la misma transacción que cada escritura; sube en lotes con `Authorization: Bearer <SYNC_TOKEN>`; el Worker hace `upsert` por UUID. D1 limita las consultas por invocación en el plan gratis, así que el Worker acepta el prefijo del lote que cabe en `SYNC_STATEMENT_BUDGET` y el escritorio reenvía el resto.
+- **Sync:** outbox en la misma transacción que cada escritura; sube en lotes con el token propio de cada PC (el `SYNC_TOKEN` solo sirve para registrarla) y baja los cambios de las demás PCs. Gana el último cambio en productos, clientes, usuarios y tasas; el inventario viaja como movimientos de stock y las ventas anuladas nunca vuelven a completadas. D1 limita las consultas por invocación en el plan gratis, así que el Worker acepta el prefijo del lote que cabe en `SYNC_STATEMENT_BUDGET` y el escritorio reenvía el resto.
 - **Unicidad:** usuario, código de producto y número de venta son únicos solo en el escritorio (`apps/desktop/drizzle/0001_desktop_unique.sql`). D1 nunca rechaza una fila del escritorio (por ejemplo, números de venta reutilizados tras restaurar un respaldo).
 - **Tasa:** la API solo sugiere; la tasa del día es la que confirma un usuario. Sin tasa confirmada no hay ventas.
 - **Módulos:** cada app se organiza en `core/ libs/ utils/ modules/<dominio>/{repository, service, ipc|routes}`. Solo los repositories tocan Drizzle.
